@@ -39,13 +39,13 @@ def train():
     train_root = "path_to_train_data"
     aug_root='path'
     val_root = "path_to_val_data"
-    test_root="path_to_test_data"
+    # test_root="path_to_test_data"
 
 
     train_data = create_data_list(train_root)
     aug_data=create_data_list(aug_root)
     val_data = create_data_list(val_root)
-    test_data = create_data_list(test_root)
+    # test_data = create_data_list(test_root)
 
     train_transforms = create_train_transforms()
     val_transforms = create_val_transforms()
@@ -54,7 +54,7 @@ def train():
 
     train_loader = get_loader(train_data, train_transforms, batch_size=4, shuffle=True)
     val_loader = get_loader(val_data, val_transforms, batch_size=4, shuffle=False)
-    test_loader = get_loader(test_data, val_transforms, batch_size=4, shuffle=False)
+    # test_loader = get_loader(test_data, val_transforms, batch_size=4, shuffle=False)
     # -------------------------
     # 3. Model
     # -------------------------
