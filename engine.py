@@ -1,6 +1,6 @@
+import torch
 
-
-def train_one_epoch(model, loader, device,cls_loss_fn,seg_loss_fn):
+def train_one_epoch(model,optimizer, loader, device,cls_loss_fn,seg_loss_fn):
     model.train()
 
     train_loss = 0
