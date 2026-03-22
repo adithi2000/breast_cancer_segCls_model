@@ -1,5 +1,5 @@
 from monai.transforms import (
-    Compose, LoadImaged, EnsureChannelFirstd, ScaleIntensityd, ToTensord, Lambdad, ResizeD
+    Compose, LoadImaged, EnsureChannelFirstd, ScaleIntensityd, ToTensord, Lambdad, ResizeD, RandFlipd, RandRotate90d
 )
 from monai.data import Dataset
 import os
