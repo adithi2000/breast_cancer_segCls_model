@@ -11,7 +11,7 @@ def train_one_epoch(model,optimizer, loader, device,cls_loss_fn,seg_loss_fn):
     for batch in loader:
         images = batch['image'].to(device)
         masks = batch['mask'].to(device)
-        labels = batch['label'].to(device).long().squeeze()
+        labels = batch['label'].to(device).long()
         type(labels)
 
         optimizer.zero_grad()
@@ -72,7 +72,7 @@ def validation(model, loader, device,cls_loss_fn,seg_loss_fn):
         for batch in loader:
             images = batch['image'].to(device)
             masks = batch['mask'].to(device)
-            labels = batch['label'].to(device).long().squeeze()
+            labels = batch['label'].to(device).long()
 
             # 🔥 forward pass (missing before)
             seg_out, cls_out = model(images)
