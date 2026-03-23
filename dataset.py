@@ -48,7 +48,7 @@ def create_train_transforms():
         Lambdad(keys="mask", func=lambda x: x[0:1, ...]),
         Lambdad(keys="mask", func=lambda x: x.astype("float32")),
         ScaleIntensityd(keys="image"),
-        ToTensord(keys=['image','mask','label'])
+        ToTensord(keys=['image','mask'])
         
         
     ]
@@ -64,7 +64,7 @@ def create_val_transforms():
         Lambdad(keys="mask", func=lambda x: x[0:1, ...]),
         Lambdad(keys="mask", func=lambda x: x.astype("float32")),
         ScaleIntensityd(keys="image"),
-        ToTensord(keys=['image','mask','label'])
+        ToTensord(keys=['image','mask'])
         
         
     ]
