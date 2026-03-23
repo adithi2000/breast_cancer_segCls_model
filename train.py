@@ -59,14 +59,14 @@ def train():
     # -------------------------
     # 3. Model
     # -------------------------
-    essential = get_model(in_channels=1).to(device)
-    model=essential['model']
+    essential = get_model(in_channels=1)
+    model=essential['model'].to(device)
 
     # -------------------------
     # 4. Optimizer
     # -------------------------
     
-    optimizer=essential['optimizer']
+    optimizer=essential['optimizer'].to(device)
     # -------------------------
     # 5. Loss Functions
     # -------------------------
