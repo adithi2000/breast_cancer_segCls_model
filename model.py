@@ -10,7 +10,7 @@ class MaskClassifyModel(nn.Module):
         nn.AdaptiveAvgPool2d(1),
         nn.Flatten(),
 
-        nn.Linear(16,32),
+        nn.Linear(1,32),
         nn.ReLU(),
          nn.Dropout(0.3),
 
