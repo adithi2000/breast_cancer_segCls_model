@@ -10,28 +10,30 @@ class MaskClassifyModel(nn.Module):
         nn.AdaptiveAvgPool2d(1),
         nn.Flatten(),
 
-        nn.Linear(1,32),
-        nn.ReLU(),
-         nn.Dropout(0.3),
-
-        nn.Linear(32,64),
-        nn.ReLU(),
-        nn.Dropout(0.3),
-
-        # nn.Linear(64,128),
+        # nn.Linear(1,32),
         # nn.ReLU(),
-        #too much expansion causes overfitting,instability
+        #  nn.Dropout(0.3),
+
+        # nn.Linear(32,64),
+        # nn.ReLU(),
         # nn.Dropout(0.3),
 
-        # nn.Linear(128,64),
-        # nn.ReLU(),
+        # # nn.Linear(64,128),
+        # # nn.ReLU(),
+        # #too much expansion causes overfitting,instability
+        # # nn.Dropout(0.3),
 
-        nn.Linear(64,32),
-        nn.ReLU(),
-         nn.Dropout(0.3),
-        #logits
+        # # nn.Linear(128,64),
+        # # nn.ReLU(),
+
+        # nn.Linear(64,32),
+        # nn.ReLU(),
+        #  nn.Dropout(0.3),
+        # #logits
         
-        nn.Linear(32,num_classes)
+        # nn.Linear(32,num_classes)
+
+        nn.Linear(1,num_classes)
         )
 
     def forward(self,x):
@@ -39,8 +41,8 @@ class MaskClassifyModel(nn.Module):
         class_out=self.classifier(seg_out)
         return seg_out,class_out
 
-def get_model(in_channels,out_channels=1):
-    model=MaskClassifyModel(in_channels,out_channels)
+def get_model(in_channels,num_classes):
+    model=MaskClassifyModel(in_channels,num_classes)
 
     optimizer = torch.optim.Adam(
     model.parameters(),
