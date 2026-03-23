@@ -66,7 +66,7 @@ def train():
     # 4. Optimizer
     # -------------------------
     
-    optimizer=essential['optimizer'].to(device)
+    optimizer=essential['optimizer']
     # -------------------------
     # 5. Loss Functions
     # -------------------------
