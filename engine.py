@@ -11,7 +11,7 @@ def train_one_epoch(model,optimizer, loader, device,cls_loss_fn,seg_loss_fn):
     for batch in loader:
         images = batch['image'].to(device)
         masks = batch['mask'].to(device)
-        labels = batch['label'].to(device).long()
+        labels = torch.tensor(batch['label']).to(device).long()
 
         optimizer.zero_grad()
 
@@ -32,7 +32,7 @@ def train_one_epoch(model,optimizer, loader, device,cls_loss_fn,seg_loss_fn):
         count = 0
 
         for i in range(masks.shape[0]):
-            if masks[i].sum() > 0:
+            if torch.any(masks[i] > 0):
                 loss_seg_batch += seg_loss_fn(
                     seg_out[i:i+1], masks[i:i+1]
                 )
@@ -70,7 +70,7 @@ def validation(model, loader, device,cls_loss_fn,seg_loss_fn):
         for batch in loader:
             images = batch['image'].to(device)
             masks = batch['mask'].to(device)
-            labels = batch['label'].to(device).long()
+            labels = torch.tensor(batch['label']).to(device).long()
 
             # 🔥 forward pass (missing before)
             seg_out, cls_out = model(images)
@@ -83,7 +83,7 @@ def validation(model, loader, device,cls_loss_fn,seg_loss_fn):
             count = 0
 
             for i in range(masks.shape[0]):
-                if masks[i].sum() > 0:
+                if torch.any(masks[i] > 0):
                     loss_seg_batch += seg_loss_fn(
                         seg_out[i:i+1], masks[i:i+1]
                     )
