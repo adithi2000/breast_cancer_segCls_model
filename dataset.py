@@ -86,6 +86,6 @@ def get_loader(data_list, transforms_, batch_size=4, shuffle=False):
     replacement=True
     )
 
-    loader=DataLoader(ds, batch_size=batch_size, shuffle=shuffle,sampler=sampler)
+    loader=DataLoader(ds, batch_size=batch_size,sampler=sampler)
     return loader
 
