@@ -10,7 +10,6 @@ from torch.utils.data import WeightedRandomSampler
 
 def create_data_list(root):
     data_list=[]
-    print(class_name)
     class_map = {
     "normal": 0,
     "benign": 1,
