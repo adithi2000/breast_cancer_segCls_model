@@ -141,7 +141,7 @@ def train():
 
     mlflow.end_run()
 
-    FileLink('/kaggle/working/models/best_model.pth")
+    FileLink('/kaggle/working/models/best_model.pth')
 
 # -------------------------
 # Entry Point
