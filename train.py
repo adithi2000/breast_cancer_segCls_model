@@ -97,7 +97,7 @@ def train():
     min_delta=0.001
     for e in range(epochs):
         print(f"epoch {e+1}")
-        train_loss=train_one_epoch(model,train_loader,device,cls_loss_fn,seg_loss_fn)
+        train_loss=train_one_epoch(model,optimizer,train_loader,device,cls_loss_fn,seg_loss_fn)
         print(f"train_loss is {train_loss}")
         val_loss=validation(model,val_loader,device,cls_loss_fn,seg_loss_fn)
         print(f"val_loss {val_loss}")
