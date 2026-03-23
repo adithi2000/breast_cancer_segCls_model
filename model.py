@@ -39,7 +39,7 @@ class MaskClassifyModel(nn.Module):
         class_out=self.classifier(seg_out)
         return seg_out,class_out
 
-def get_model(in_channels,out_channels):
+def get_model(in_channels,out_channels=1):
     model=MaskClassifyModel(in_channels,out_channels)
 
     optimizer = torch.optim.Adam(
