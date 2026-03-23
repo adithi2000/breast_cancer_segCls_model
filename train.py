@@ -59,7 +59,7 @@ def train():
     # -------------------------
     # 3. Model
     # -------------------------
-    essential = get_model(in_channels=3)
+    essential = get_model(in_channels=3,num_classes=3)
     model=essential['model'].to(device)
 
     # -------------------------
