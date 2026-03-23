@@ -10,28 +10,28 @@ class MaskClassifyModel(nn.Module):
         nn.AdaptiveAvgPool2d(1),
         nn.Flatten(),
 
-        nn.Linear(1,32),
+        nn.Linear(1,16),
         nn.ReLU(),
          nn.Dropout(0.3),
 
-        nn.Linear(32,64),
-        nn.ReLU(),
-        nn.Dropout(0.3),
-
-        # nn.Linear(64,128),
+        # nn.Linear(32,64),
         # nn.ReLU(),
-        #too much expansion causes overfitting,instability
         # nn.Dropout(0.3),
 
-        # nn.Linear(128,64),
-        # nn.ReLU(),
+        # # nn.Linear(64,128),
+        # # nn.ReLU(),
+        # #too much expansion causes overfitting,instability
+        # # nn.Dropout(0.3),
 
-        nn.Linear(64,32),
-        nn.ReLU(),
-         nn.Dropout(0.3),
-        #logits
+        # # nn.Linear(128,64),
+        # # nn.ReLU(),
+
+        # nn.Linear(64,32),
+        # nn.ReLU(),
+        #  nn.Dropout(0.3),
+        # #logits
         
-        nn.Linear(32,num_classes)
+        nn.Linear(16,num_classes)
 
         # nn.Linear(1,num_classes)
         )
