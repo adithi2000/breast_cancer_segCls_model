@@ -42,6 +42,7 @@ def train():
     val_root = "/kaggle/input/datasets/adithip2000/breast-cancer-data-train-test-split/original/val"
     # test_root="/kaggle/input/datasets/adithip2000/breast-cancer-data-train-test-split/original/test"
 
+    print("DATA PATH SET")
 
     train_data = create_data_list(train_root)
     # aug_data=create_data_list(aug_root)
@@ -56,6 +57,8 @@ def train():
     train_loader = get_loader(train_data, train_transforms, batch_size=4, shuffle=True)
     val_loader = get_loader(val_data, val_transforms, batch_size=4, shuffle=False)
     # test_loader = get_loader(test_data, val_transforms, batch_size=4, shuffle=False)
+
+    print("DATASET LOADER COMPLETED...")
     # -------------------------
     # 3. Model
     # -------------------------
@@ -76,7 +79,7 @@ def train():
     # -------------------------
     # 6. MLflow start
     # -------------------------
-
+    print("MLFLOW STARTED")
     mlflow.set_tracking_uri("file:/kaggle/working/mlruns")
     mlflow.set_experiment("breast_cancer_model")
     mlflow.start_run()
