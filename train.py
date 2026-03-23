@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import mlflow
 import mlflow.pytorch
+from IPython.display import FileLink
 
 from model import get_model
 from dataset import create_data_list, create_train_transforms, create_val_transforms, get_loader
@@ -36,21 +37,21 @@ def train():
     # make a download function from s3 to a path data/train,etc
     # if not os.path.exists("data/train/"):
     # download_from_s3(...)
-    train_root = "path_to_train_data"
-    aug_root='path'
-    val_root = "path_to_val_data"
-    # test_root="path_to_test_data"
+    train_root = "/kaggle/input/datasets/adithip2000/breast-cancer-data-train-test-split/original/train"
+    # aug_root='path'
+    val_root = "/kaggle/input/datasets/adithip2000/breast-cancer-data-train-test-split/original/val"
+    # test_root="/kaggle/input/datasets/adithip2000/breast-cancer-data-train-test-split/original/test"
 
 
     train_data = create_data_list(train_root)
-    aug_data=create_data_list(aug_root)
+    # aug_data=create_data_list(aug_root)
     val_data = create_data_list(val_root)
     # test_data = create_data_list(test_root)
 
     train_transforms = create_train_transforms()
     val_transforms = create_val_transforms()
 
-    train_data=train_data+aug_data
+    # train_data=train_data+aug_data
 
     train_loader = get_loader(train_data, train_transforms, batch_size=4, shuffle=True)
     val_loader = get_loader(val_data, val_transforms, batch_size=4, shuffle=False)
@@ -75,6 +76,9 @@ def train():
     # -------------------------
     # 6. MLflow start
     # -------------------------
+
+    mlflow.set_tracking_uri("file:/kaggle/working/mlruns")
+    mlflow.set_experiment("breast_cancer_model")
     mlflow.start_run()
 
     mlflow.log_param("lr", 1e-4)
@@ -111,7 +115,7 @@ def train():
                 "model_state_dict":model.state_dict(),
                 "optimizer_state_dict":optimizer.state_dict(),
                 "best_loss":best_loss
-            },f"/models/best_model.pth"
+            },f"/kaggle/working/models/best_model.pth"
         )
         else:
             print("Not saving.. under patience")
@@ -137,6 +141,7 @@ def train():
 
     mlflow.end_run()
 
+    FileLink('/kaggle/working/models/best_model.pth")
 
 # -------------------------
 # Entry Point
