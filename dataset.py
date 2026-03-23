@@ -17,6 +17,8 @@ def create_data_list(root):
         }
     for class_name in class_map.keys():
         class_path=os.path.join(root,class_name)
+        print(class_path)
+        print(os.path.exists(class_path))
         for file in os.listdir(class_path):
             if '_mask' not in file:
                 image_path=os.path.join(class_path,file)
