@@ -16,11 +16,11 @@ def train_one_epoch(model,optimizer, loader, device,cls_loss_fn,seg_loss_fn):
         optimizer.zero_grad()
 
         seg_out, cls_out = model(images)
-        print("Labels",labels)
-        print("Unique",torch.unique(labels))
-        print("Min:",labels.min().item()," Max:",labels.max().item())
-        assert labels.min() >=0,"negative found"
-        assert labels.max() < 3, "label exceeds num_classes"
+        # print("Labels",labels)
+        # print("Unique",torch.unique(labels))
+        # print("Min:",labels.min().item()," Max:",labels.max().item())
+        # assert labels.min() >=0,"negative found"
+        # assert labels.max() < 3, "label exceeds num_classes"
         
         # classification loss (always)
         loss_cls = cls_loss_fn(cls_out, labels)
