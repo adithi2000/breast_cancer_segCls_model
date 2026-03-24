@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import mlflow
 import mlflow.pytorch
-from IPython.display import FileLink
+# from IPython.display import FileLink
 
 from model import get_model
 from dataset import create_data_list, create_train_transforms, create_val_transforms, get_loader
@@ -22,6 +22,9 @@ from dataset import create_data_list, create_train_transforms, create_val_transf
 from engine import train_one_epoch, validation
 from monai.losses import DiceLoss
 
+from download_from_s3 import download_from_s3, get_latest_augmented_prefix
+import os
+
 
 def train():
 
@@ -34,20 +37,32 @@ def train():
     # 2. Data
     # -------------------------
 
-    # make a download function from s3 to a path data/train,etc
-    # if not os.path.exists("data/train/"):
-    # download_from_s3(...)
-    train_root = "/kaggle/input/datasets/adithip2000/breast-cancer-data-train-test-split/original/train"
-    # aug_root='path'
-    val_root = "/kaggle/input/datasets/adithip2000/breast-cancer-data-train-test-split/original/val"
-    # test_root="/kaggle/input/datasets/adithip2000/breast-cancer-data-train-test-split/original/test"
+    # train_root = "/kaggle/input/datasets/adithip2000/breast-cancer-data-train-test-split/original/train"
+    # val_root = "/kaggle/input/datasets/adithip2000/breast-cancer-data-train-test-split/original/val"
+   
+    os.makedirs("data/original/train", exist_ok=True)
+    os.makedirs("data/original/val", exist_ok=True)
+    #os.makedirs("data/augmented/", exist_ok=True)
+
+
+    train_root = "./data/original/train"
+    download_from_s3("original/train/", train_root)
+
+    # aug_root="./data/augmented/"
+    # aug_prefix=get_latest_augmented_prefix()
+    # download_from_s3(aug_prefix, aug_root)
+
+    val_root = "./data/original/val"
+    download_from_s3("original/val/", val_root)
+
+    
 
     print("DATA PATH SET")
 
     train_data = create_data_list(train_root)
     # aug_data=create_data_list(aug_root)
     val_data = create_data_list(val_root)
-    # test_data = create_data_list(test_root)
+    
 
     train_transforms = create_train_transforms()
     val_transforms = create_val_transforms()
@@ -80,7 +95,7 @@ def train():
     # 6. MLflow start
     # -------------------------
     print("MLFLOW STARTED")
-    mlflow.set_tracking_uri("file:/kaggle/working/mlruns")
+    mlflow.set_tracking_uri("file:/mlruns")
     mlflow.set_experiment("breast_cancer_model")
     mlflow.start_run()
 
@@ -118,8 +133,9 @@ def train():
                 "model_state_dict":model.state_dict(),
                 "optimizer_state_dict":optimizer.state_dict(),
                 "best_loss":best_loss
-            },f"/kaggle/working/models/best_model.pth"
+            },f"models/best_model.pth"
         )
+            # f"/kaggle/working/models/best_model.pth"
         else:
             print("Not saving.. under patience")
             count+=1
@@ -144,7 +160,7 @@ def train():
 
     mlflow.end_run()
 
-    FileLink('/kaggle/working/models/best_model.pth')
+    # FileLink('/kaggle/working/models/best_model.pth')
 
 # -------------------------
 # Entry Point
