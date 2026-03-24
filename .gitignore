@@ -3,3 +3,6 @@ logs/
 models/
 results/
 data/
+__pycache__/
+*.pth
+*.pt
