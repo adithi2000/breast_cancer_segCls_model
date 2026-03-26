@@ -1,8 +1,8 @@
 import torch
-from monai.metrics import Dicemetric
+from monai.metrics import DiceMetric
 
 
-dice_metric = Dicemetric(include_background=True, reduction="mean")
+dice_metric = DiceMetric(include_background=True, reduction="mean")
 
 def train_one_epoch(model,optimizer, loader, device,cls_loss_fn,seg_loss_fn):
     model.train()
@@ -63,9 +63,10 @@ def train_one_epoch(model,optimizer, loader, device,cls_loss_fn,seg_loss_fn):
     print("Train Seg Loss:", seg_loss_total / count_batches,
           "Train Cls Loss:", cls_loss_total / count_batches)
     print("Train Dice Score:", dice_metric.aggregate().item())
+    dice_met=dice_metric.aggregate().item()
     dice_metric.reset()
 
-    return train_loss / count_batches,dice_metric.aggregate().item(),total_accuracy / count_batches
+    return train_loss / count_batches,dice_met,total_accuracy / count_batches
 
 def validation(model, loader, device,cls_loss_fn,seg_loss_fn):
     model.eval()
@@ -120,6 +121,7 @@ def validation(model, loader, device,cls_loss_fn,seg_loss_fn):
     print("Val Seg Loss:", seg_loss_total / count_batches,
           "Val Cls Loss:", cls_loss_total / count_batches)
     print("Val Dice Score:", dice_metric.aggregate().item())
+    dice_met=dice_metric.aggregate().item()
     dice_metric.reset()
 
-    return val_loss / count_batches,dice_metric.aggregate().item(),total_accuracy / count_batches
+    return val_loss / count_batches,dice_met,total_accuracy / count_batches
