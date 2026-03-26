@@ -1,5 +1,5 @@
 from monai.transforms import (
-    Compose, LoadImaged, EnsureChannelFirstd, ScaleIntensityd, ToTensord, Lambdad, ResizeD, RandFlipd, RandRotate90d
+    Compose, LoadImaged, EnsureChannelFirstd, ScaleIntensityd, ToTensord, Lambdad, ResizeD, RandFlipd, RandRotate90d,RepeatChanneld
 )
 from monai.data import Dataset
 import os
@@ -25,6 +25,8 @@ def create_data_list(root):
                 mask_name = file.replace(".png", "_mask.png")
                 mask_path = os.path.join(class_path, mask_name)
 
+                # print(image_path, mask_path)
+
                 if os.path.exists(mask_path):
                     data_list.append({
                     "image": image_path,
@@ -40,6 +42,7 @@ def create_train_transforms():
     [
         LoadImaged(keys=['image','mask']),
         EnsureChannelFirstd(keys=["image", "mask"]),
+        Lambdad(keys=["image"], func=lambda x: x if x.shape[0] ==3 else x.repeat(3, 1, 1)),  # Ensure image is float32
         ResizeD(keys=["image", "mask"], spatial_size=(256, 256)),
 
         RandFlipd(keys=["image", "mask"], prob=0.5, spatial_axis=0),
@@ -60,6 +63,8 @@ def create_val_transforms():
     [
         LoadImaged(keys=['image','mask']),
         EnsureChannelFirstd(keys=["image", "mask"]),
+        # RepeatChanneld(keys=["image"], repeats=3),  # Convert grayscale to 3-channel  
+        Lambdad(keys=["image"], func=lambda x: x if x.shape[0] ==3 else x.repeat(3, 1, 1)), 
         ResizeD(keys=["image", "mask"], spatial_size=(256, 256)),
         Lambdad(keys="mask", func=lambda x: x[0:1, ...]),
         Lambdad(keys="mask", func=lambda x: x.astype("float32")),
