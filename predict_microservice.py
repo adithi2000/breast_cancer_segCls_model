@@ -19,13 +19,8 @@ from monai.transforms import (
 
 Inference_transforms=Compose(
     [
-        LoadImaged(keys=['image']),
-        EnsureChannelFirstd(keys=["image"]),
-        # RepeatChanneld(keys=["image"], repeats=3),  # Convert grayscale to 3-channel  
-        Lambdad(keys=["image"], func=lambda x: x if x.shape[0] ==3 else x.repeat(3, 1, 1)), 
+       
         ResizeD(keys=["image"], spatial_size=(256, 256)),
-        # Lambdad(keys="mask", func=lambda x: x[0:1, ...]),
-        # Lambdad(keys="mask", func=lambda x: x.astype("float32")),
         ScaleIntensityd(keys="image"),
         ToTensord(keys=['image'])
     ]
@@ -40,7 +35,7 @@ async def predict(file: UploadFile = File(...)):
     contents = await file.read()
     image = Image.open(io.BytesIO(contents)).convert('RGB')  # Convert to RGB
     image_np = np.array(image)
-    
+    image_np=np.transpose(image_np, (2, 0, 1))  # Add channel dimension for grayscale images H,W to C,H,W
     # Create a dictionary for the transforms
     data_dict = {"image": image_np}
     
@@ -54,13 +49,32 @@ async def predict(file: UploadFile = File(...)):
         model.eval()
         seg_out,cls_out = model(input_tensor)
         predicted_class = torch.argmax(cls_out, dim=1).item()
-        seg_mask=(seg_out > 0.5).float().squeeze().cpu().numpy()  # Convert to binary mask and remove batch dimension
+       
+        #=================================================
+        # Post-process the segmentation output to create a colored mask
+        seg_out=torch.sigmoid(seg_out)  # Apply sigmoid to get probabilities binary mask
+        seg_mask = seg_out.squeeze(0).squeeze(0).cpu().numpy()  # Remove batch and channel dimensions
+        mask=cv2.resize(seg_mask, (image_np.shape[1], image_np.shape[0]))  # Resize to original image size
+        mask=mask.squeeze()  # Remove any extra dimensions if present
+        mask = (mask > 0.5).astype(np.uint8)  # Threshold the mask to create a binary mask
+        colored_mask = np.zeros_like(image_np)  # Create an empty mask with the same shape as the original image
+        colored_mask[:,:,0][mask==1]= 255
+        colored_mask[:,:,1][mask==1] = 0
+        colored_mask[:,:,2][mask==1] = 0
+          # Color the mask red where the probability is greater than 0.5
+        colored_mask = np.transpose(colored_mask, (1, 2, 0))  # Convert to HWC format for visualization
+        image_np = np.transpose(image_np, (1, 2, 0))  # Convert back to HWC format for visualization
+        print(f"image shape: {image_np.shape}, mask shape: {mask.shape}, colored_mask shape: {colored_mask.shape}")
+        overlayed_image = cv2.addWeighted(image_np, 0.7, colored_mask, 0.3, 0)  # Overlay the original image with the colored mask
 
-        seg_mask=(seg_mask > 0 ).astype(np.uint8)  # Convert to binary mask and scale to [0, 255]
-        mask=cv2.resize(seg_mask,(image_np.shape[1],image_np.shape[0]),interpolation=cv2.INTER_NEAREST)
-        colored_mask = np.zeros_like(image_np)
-        colored_mask[:,:,0] = mask * 255  # Red channel for the mask
-        overlayed_image = cv2.addWeighted(image_np, 0.7, colored_mask, 0.3)
+        #=================================================
+       
+       
+
+
+
+
+        overlayed_image = cv2.addWeighted(image_np, 0.7, colored_mask, 0.3,0)
         overlayed_image_pil = Image.fromarray(overlayed_image)
         # overlayed_image_pil.save("output.png")
         buffer=io.BytesIO()
