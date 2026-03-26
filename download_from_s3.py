@@ -75,7 +75,7 @@ def download_from_s3(prefix, local_root):
 
             # Step 10: Skip download if file already exists (caching)
             if os.path.exists(local_file_path):
-                print(f"⏭️ Skipping (already exists): {local_file_path}")
+                print(f">>- skipping (already exists): {local_file_path}")
                 continue
 
             # Step 11: Download file from S3

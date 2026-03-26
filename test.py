@@ -2,7 +2,9 @@
 
 import torch
 import torch.nn as nn
-
+import mlflow
+import mlflow.pytorch
+import os
 from download_from_s3 import download_from_s3
 from engine import validation
 from model import get_model
@@ -38,11 +40,14 @@ def test():
     # -------------------------
     # 4. Load BEST Model
     # -------------------------
-    model_path = "./models/best_model.pth"
-    checkpoint = torch.load(model_path, map_location=device)
 
-    model.load_state_dict(checkpoint["model_state_dict"])
-    model.train()
+    mlflow.set_tracking_uri("http://54.238.233.247:5000/")
+    mlflow.set_experiment("breast_cancer_model")
+    # model_path = "./models/best_model.pth"
+    # checkpoint = torch.load(model_path, map_location=device)
+
+    # model.load_state_dict(checkpoint["model_state_dict"])
+    # model.train()
 
     print("✅ Loaded best model")
 
@@ -52,10 +57,26 @@ def test():
     cls_loss_fn = nn.CrossEntropyLoss()
     seg_loss_fn = nn.BCEWithLogitsLoss()
     
-        # 🔥 add more metrics here (e.g., Dice, IoU, Accuracy)
     
-    total_test_loss=validation(model, test_loader, device, cls_loss_fn, seg_loss_fn)
-    print("Test Loss:", total_test_loss)
+    # run_id=os.getenv("RUN_ID")
+    with open("RUN_ID.txt", "r") as f:
+        run_id = f.read().strip()
+    
+   
+    
+    if run_id:
+        with mlflow.start_run(run_id=run_id):
+            model=mlflow.pytorch.load_model(f"runs:/{run_id}/best_model")
+            print(f"✅ Loaded model from MLflow run: {run_id}")
+            model.to(device)
+            model.train()
+            total_test_loss=validation(model, test_loader, device, cls_loss_fn, seg_loss_fn)
+            print("Test Loss:", total_test_loss)
+            mlflow.log_metric("test_loss", total_test_loss)
+    else:
+        print("⚠️ RUN_ID not found in environment variables. Skipping MLflow logging.")
+        # total_test_loss=validation(model, test_loader, device, cls_loss_fn, seg_loss_fn)
+        # print("Test Loss:", total_test_loss)
 # -------------------------
 # Entry Point
 # -------------------------
