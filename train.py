@@ -142,7 +142,7 @@ def train():
             mlflow.log_metric("train_accuracy", train_accuracy, step=e)
             mlflow.log_metric("val_accuracy", val_accuracy, step=e)
             score=0.7*val_dice+0.3*val_accuracy
-            if(score > best_score + 1e-4 and val_accuracy > 0.75):  # 🔥 check both dice and accuracy with a small margin
+            if(score > best_score + 1e-4):  # 🔥 check both dice and accuracy with a small margin
                 print("Saving model....")
                 best_score=score
                 count=0
