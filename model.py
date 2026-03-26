@@ -46,7 +46,7 @@ def get_model(in_channels,num_classes):
 
     optimizer = torch.optim.Adam(
     model.parameters(),
-    lr=1e-3,
+    lr=1e-4,
     weight_decay=1e-5   # helps prevent overfitting
     )
 

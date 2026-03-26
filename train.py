@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import mlflow
 import mlflow.pytorch
-# from IPython.display import FileLink
+from dotenv import load_dotenv
 
 from model import get_model
 from dataset import create_data_list, create_train_transforms, create_val_transforms, get_loader
@@ -95,21 +95,22 @@ def train():
     # 6. MLflow start
     # -------------------------
     print("MLFLOW STARTED")
-    mlflow.set_tracking_uri("http://54.238.233.247:5000/")
-    mlflow.set_experiment("breast_cancer_model")
-    
+    load_dotenv()
+    mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
+    mlflow.set_experiment(os.getenv("EXPERIMENT_NAME"))
+
     with mlflow.start_run() as run:
         run_id = run.info.run_id
         print(f"RUN_ID={run_id}")
         with open("RUN_ID.txt", "w") as f:
             f.write(run_id)
 
-        best_loss=float("inf")
+        best_score=0
         best_model_state=None
         patience=3
         epochs=2
         count=0
-        min_delta=0.001
+        # min_delta=0.001
         mlflow.log_param("lr", 1e-4)
         mlflow.log_param("epochs", epochs)
         mlflow.log_param("seg_loss", "DiceLoss")
@@ -121,16 +122,24 @@ def train():
     
         for e in range(epochs):
             print(f"epoch {e+1}")
-            train_loss=train_one_epoch(model,optimizer,train_loader,device,cls_loss_fn,seg_loss_fn)
+            train_loss,train_dice,train_accuracy=train_one_epoch(model,optimizer,train_loader,device,cls_loss_fn,seg_loss_fn)
             print(f"train_loss is {train_loss}")
-            val_loss=validation(model,val_loader,device,cls_loss_fn,seg_loss_fn)
+            print(f"train_dice is {train_dice}")
+            val_loss,val_dice,val_accuracy=validation(model,val_loader,device,cls_loss_fn,seg_loss_fn)
             print(f"val_loss {val_loss}")
+            print(f"val_dice {val_dice}")
+            print(f"val_accuracy {val_accuracy}")
         # 🔥 MLflow logging
             mlflow.log_metric("train_loss", train_loss, step=e)
             mlflow.log_metric("val_loss", val_loss, step=e)
-            if(val_loss < best_loss and (best_loss-val_loss > min_delta)):
+            mlflow.log_metric("train_dice", train_dice, step=e)
+            mlflow.log_metric("val_dice", val_dice, step=e)
+            mlflow.log_metric("train_accuracy", train_accuracy, step=e)
+            mlflow.log_metric("val_accuracy", val_accuracy, step=e)
+            score=0.7*val_dice+0.3*val_accuracy
+            if(score > best_score + 1e-4 and val_accuracy > 0.75):  # 🔥 check both dice and accuracy with a small margin
                 print("Saving model....")
-                best_loss=val_loss
+                best_score=score
                 count=0
                 best_model_state=model.state_dict()
                 torch.save(
@@ -138,7 +147,7 @@ def train():
                 "epoch":e+1,
                 "model_state_dict":model.state_dict(),
                 "optimizer_state_dict":optimizer.state_dict(),
-                "best_loss":best_loss
+                "best_score":best_score
             },f"models/best_model.pth"
             )
             # f"/kaggle/working/models/best_model.pth"
@@ -156,6 +165,7 @@ def train():
             model.load_state_dict(best_model_state)
 
         mlflow.pytorch.log_model(model, "best_model")
+        mlflow.log_metric("best_val_score", best_score)
 
         mlflow.end_run()
 

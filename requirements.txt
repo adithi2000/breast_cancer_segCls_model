@@ -1,0 +1,11 @@
+torch
+torchvision
+monai
+mlflow
+boto3
+python-dotenv
+fastapi
+uvicorn
+python-multipart
+numpy
+opencv-python
