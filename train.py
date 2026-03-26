@@ -115,6 +115,11 @@ def train():
         mlflow.log_param("epochs", epochs)
         mlflow.log_param("seg_loss", "DiceLoss")
         mlflow.log_param("cls_loss", "CrossEntropy")
+        mlflow.log_param("accuracy","Batch wise average accuracy")
+        mlflow.log_param("Dice metric",'basis of model selection')
+        mlflow.log_param("model_architecture", "SegResNet50 with dual heads")
+        mlflow.log_param("data_augmentation", "Included augmented data from S3 with latest prefix")
+        mlflow.log_param("early_stopping", f"Based on combined score of 0.7*val_dice + 0.3*val_accuracy with patience {patience}")
 
     # -------------------------
     # 7. Training Loop
