@@ -24,6 +24,6 @@ def select_best_model():
 
     # Load the best model artifact
     best_model_uri = f"runs:/{best_run['run_id']}/best_model"
-    best_model = mlflow.pytorch.load_model(best_model_uri)
+    # best_model = mlflow.pytorch.load_model(best_model_uri)
 
-    return best_model
+    return best_model_uri

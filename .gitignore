@@ -10,3 +10,4 @@ mlflow.db
 mlruns/
 *.log
 *.csv
+Predict_Microservice/helper.txt
