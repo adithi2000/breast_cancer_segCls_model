@@ -6,10 +6,10 @@ import torch.nn as nn
 import mlflow
 import mlflow.pytorch
 import os
-from download_from_s3 import download_from_s3
-from engine import validation
-from model import get_model
-from dataset import create_data_list, create_val_transforms, get_loader
+from src.download_from_s3 import download_from_s3
+from src.engine import validation
+from src.model import get_model
+from src.dataset import create_data_list, create_val_transforms, get_loader
 from dotenv import load_dotenv
 
 def test():
@@ -23,7 +23,7 @@ def test():
     # 2. Data
     # -------------------------
     test_root = "./data/original/test"
-    download_from_s3("original/test/", test_root)
+    # download_from_s3("original/test/", test_root)
 
     test_data = create_data_list(test_root)
 

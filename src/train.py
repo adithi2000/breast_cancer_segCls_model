@@ -6,9 +6,9 @@ import mlflow
 import mlflow.pytorch
 from dotenv import load_dotenv
 
-from model import get_model
-from dataset import create_data_list, create_train_transforms, create_val_transforms, get_loader
-from engine import train_one_epoch, validation
+from src.model import get_model
+from src.dataset import create_data_list, create_train_transforms, create_val_transforms, get_loader
+from src.engine import train_one_epoch, validation
 
 # train.py
 
@@ -17,12 +17,12 @@ import torch.nn as nn
 import mlflow
 import mlflow.pytorch
 
-from model import MaskClassifyModel
-from dataset import create_data_list, create_train_transforms, create_val_transforms, get_loader
-from engine import train_one_epoch, validation
+from src.model import MaskClassifyModel
+from src.dataset import create_data_list, create_train_transforms, create_val_transforms, get_loader
+from src.engine import train_one_epoch, validation
 from monai.losses import DiceLoss
 
-from download_from_s3 import download_from_s3, get_latest_augmented_prefix
+from src.download_from_s3 import download_from_s3, get_latest_augmented_prefix
 import os
 
 
@@ -46,14 +46,14 @@ def train():
 
 
     train_root = "./data/original/train"
-    download_from_s3("original/train/", train_root)
+    # download_from_s3("original/train/", train_root)
 
     aug_root="./data/augmented/"
     aug_prefix=get_latest_augmented_prefix()
-    download_from_s3(aug_prefix, aug_root)
+    # download_from_s3(aug_prefix, aug_root)
 
     val_root = "./data/original/val"
-    download_from_s3("original/val/", val_root)
+    # download_from_s3("original/val/", val_root)
 
     
 
