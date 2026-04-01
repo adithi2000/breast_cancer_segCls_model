@@ -13,3 +13,4 @@ mlruns/
 Predict_Microservice/helper.txt
 src/helper.md
 /data
+*/.env
