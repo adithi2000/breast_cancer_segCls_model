@@ -6,9 +6,9 @@ import mlflow
 import mlflow.pytorch
 from dotenv import load_dotenv
 
-from src.model import get_model
-from src.dataset import create_data_list, create_train_transforms, create_val_transforms, get_loader
-from src.engine import train_one_epoch, validation
+from model import get_model
+from dataset import create_data_list, create_train_transforms, create_val_transforms, get_loader
+from engine import train_one_epoch, validation
 
 # train.py
 
@@ -17,12 +17,12 @@ import torch.nn as nn
 import mlflow
 import mlflow.pytorch
 
-from src.model import MaskClassifyModel
-from src.dataset import create_data_list, create_train_transforms, create_val_transforms, get_loader
-from src.engine import train_one_epoch, validation
+from model import MaskClassifyModel
+from dataset import create_data_list, create_train_transforms, create_val_transforms, get_loader
+from engine import train_one_epoch, validation
 from monai.losses import DiceLoss
 
-from src.download_from_s3 import download_from_s3, get_latest_augmented_prefix
+from download_from_s3 import download_from_s3, get_latest_augmented_prefix
 import os
 
 
@@ -40,19 +40,22 @@ def train():
     # train_root = "/kaggle/input/datasets/adithip2000/breast-cancer-data-train-test-split/original/train"
     # val_root = "/kaggle/input/datasets/adithip2000/breast-cancer-data-train-test-split/original/val"
    
-    os.makedirs("data/original/train", exist_ok=True)
-    os.makedirs("data/original/val", exist_ok=True)
-    os.makedirs("data/augmented/", exist_ok=True)
+    # os.makedirs("data/original/train", exist_ok=True)
+    # os.makedirs("data/original/val", exist_ok=True)
+    # os.makedirs("data/augmented/", exist_ok=True)
 
+    current_file=os.path.abspath(__file__)
+    src_dir=os.path.dirname(current_file)
+    root=os.path.dirname(src_dir)
 
-    train_root = "./data/original/train"
+    train_root = f"{root}/data/original/train"
     # download_from_s3("original/train/", train_root)
 
-    aug_root="./data/augmented/"
-    aug_prefix=get_latest_augmented_prefix()
+    aug_root=f"{root}/data/augmented/"
+    # aug_prefix=get_latest_augmented_prefix()
     # download_from_s3(aug_prefix, aug_root)
 
-    val_root = "./data/original/val"
+    val_root = f"{root}/data/original/val"
     # download_from_s3("original/val/", val_root)
 
     
@@ -147,14 +150,14 @@ def train():
                 best_score=score
                 count=0
                 best_model_state=model.state_dict()
-                torch.save(
-            {
-                "epoch":e+1,
-                "model_state_dict":model.state_dict(),
-                "optimizer_state_dict":optimizer.state_dict(),
-                "best_score":best_score
-            },f"models/best_model.pth"
-            )
+            #     torch.save(
+            # {
+            #     "epoch":e+1,
+            #     "model_state_dict":model.state_dict(),
+            #     "optimizer_state_dict":optimizer.state_dict(),
+            #     "best_score":best_score
+            # },f"models/best_model.pth"
+            # )
             # f"/kaggle/working/models/best_model.pth"
             else:
                 print("Not saving.. under patience")

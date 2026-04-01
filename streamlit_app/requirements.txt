@@ -2,4 +2,9 @@ streamlit>=1.42.0
 Authlib>=1.3.2
 opencv-python
 numpy
+request
+pillow
+python-dotenv
+httpx
+
 

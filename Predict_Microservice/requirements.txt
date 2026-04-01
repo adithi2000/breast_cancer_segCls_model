@@ -5,8 +5,10 @@ mlflow
 boto3
 python-dotenv
 fastapi
-uvicorn
+uvicorn[standard]
 python-multipart
 numpy
 opencv-python
 pillow
+cloudpickle
+google-auth
