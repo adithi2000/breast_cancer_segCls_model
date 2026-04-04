@@ -7,7 +7,7 @@ import os
 
 def select_best_model():
     # Fetch all runs for the experiment
-    load_dotenv()
+    # load_dotenv()
     mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
     exp=mlflow.search_experiments()
     for e in exp:
@@ -19,11 +19,14 @@ def select_best_model():
     # Find the run with the best validation accuracy
     best_run = runs.loc[runs['metrics.best_val_score'].idxmax()]
 
-    print(f"Best Run ID: {best_run['run_id']}")
+    print(f"Best Run ID: {best_run['run_id']}/")
     print(f"Best Validation Score: {best_run['metrics.best_val_score']}")
 
     # Load the best model artifact
-    best_model_uri = f"runs:/{best_run['run_id']}/best_model"
+    run_id = best_run['run_id']
+    best_model_uri = f"runs:/{run_id}/best_model"
+    # print(f"Best Model URI: {best_model_uri}")
     # best_model = mlflow.pytorch.load_model(best_model_uri)
+    print(f"Best Model URI: {best_model_uri}")
 
     return best_model_uri

@@ -9,7 +9,7 @@ from authlib.integrations.requests_client import OAuth2Session
 from dotenv import load_dotenv
 
 
-load_dotenv()
+# load_dotenv()
 
 
 CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
@@ -85,9 +85,9 @@ if uploaded_file is not None:
         files = {
             "file": uploaded_file.getvalue()
         }
-
+        API_URL=os.getenv("API_URL")
         response = requests.post(
-            "http://127.0.0.1:8000/predict/",
+            f"{API_URL}/",
             files=files,
             headers=headers
         )
