@@ -1,12 +1,20 @@
 name: Train Model
 on:
+    repository_dispatch:
+        types: [dvc_updated]
     workflow_dispatch:
     push:
         branches:
             - main
 jobs:
-    demo:
+    train_and_test:
         runs-on: ubuntu-latest
+        env:
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            AWS_REGION: ${{ vars.AWS_REGION }}
+            MLFLOW_TRACKING_URI: ${{ vars.MLFLOW_TRACKING_URI }}
+            EXPERIMENT_NAME: ${{ vars.EXPERIMENT_NAME }}
         steps:
             - name: Checkout code
               uses: actions/checkout@v5
@@ -15,12 +23,24 @@ jobs:
               uses: actions/setup-python@v5
               with:
                   python-version: '3.12'
+            - name: Install DVC
+              run: pip install dvc[s3]
+            
+            - name: Configure AWS
+              uses: aws-actions/configure-aws-credentials@v2
+              with:
+               aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+               aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+               aws-region: ${{ vars.AWS_REGION }}
 
-            - name: Train the model
-              run: |
-                  echo "Training the model..."
-                  #valid only for this step cd src/ and not for the next one, so we need to specify the working directory for each step
-                  cd src/
+            - name: DVC Update
+              run: dvc update data.dvc
+
+            - name: DVC Pull
+              run: dvc pull
+
+            - name: checking the files
+              run: |     
                   ls -la
             - name: Install dependencies
               run: |
@@ -28,6 +48,12 @@ jobs:
                   pip install -r requirements.txt
               working-directory: src/
             
-            # - name: Train the model
-            #   run: |
-            #       python train.py
+            - name: Train the model
+              run: |
+                  python train.py
+              working-directory: src/
+
+            - name: Test the model
+              run: |
+                    python test.py
+              working-directory: src/
