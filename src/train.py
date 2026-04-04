@@ -22,7 +22,7 @@ from dataset import create_data_list, create_train_transforms, create_val_transf
 from engine import train_one_epoch, validation
 from monai.losses import DiceLoss
 
-from download_from_s3 import download_from_s3, get_latest_augmented_prefix
+# from download_from_s3 import download_from_s3, get_latest_augmented_prefix
 import os
 
 
