@@ -6,6 +6,8 @@ on:
     push:
         branches:
             - main
+        paths:
+            - 'src/**'
 jobs:
     train_and_test:
         runs-on: ubuntu-latest

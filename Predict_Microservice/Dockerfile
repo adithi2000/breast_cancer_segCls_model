@@ -10,11 +10,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src/ /app/src/
 COPY Predict_Microservice/ /app/
 ENV PYTHONPATH=/app:/app/src
-ENV MLFLOW_TRACKING_URI=http://52.195.181.124:5000/
-ENV EXPERIMENT_NAME=breast_cancer_experiment-1
-ENV AWS_ACCESS_KEY_ID=AKIAXFXMIXLX2RKGQ3UV
-ENV AWS_SECRET_ACCESS_KEY=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
-
 EXPOSE 8000
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
