@@ -1,15 +1,15 @@
 name: Deploy ansible microservice
 on:
     workflow_dispatch:
-    push:
-        branches:
-            - main
-        paths:
-            - 'Predict_Microservice/**'
-    workflow_run:
-        workflows: ["Predict Microservice"]
-        types:
-            - completed
+    # push:
+    #     branches:
+    #         - main
+    #     paths:
+    #         - 'Predict_Microservice/**'
+    # workflow_run:
+    #     workflows: ["Predict Microservice"]
+    #     types:
+    #         - completed
 jobs:
     deploy:
         runs-on: ubuntu-latest
