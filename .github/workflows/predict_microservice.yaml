@@ -18,9 +18,9 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ vars.AWS_REGION }}
-          MLFLOW_TRACKING_URI: ${{ vars.MLFLOW_TRACKING_URI }}
+          MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
           EXPERIMENT_NAME: ${{ vars.EXPERIMENT_NAME }}
-        # if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' }}
+        if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' }}
         steps:
             - name: Checkout code
               uses: actions/checkout@v5
@@ -36,7 +36,7 @@ jobs:
                 echo "Creating Docker image..."
                 docker build \
                 --build-arg AWS_REGION=${{ vars.AWS_REGION }} \
-                --build-arg MLFLOW_TRACKING_URI=${{ vars.MLFLOW_TRACKING_URI }} \
+                --build-arg MLFLOW_TRACKING_URI=${{ secrets.MLFLOW_TRACKING_URI }} \
                 --build-arg EXPERIMENT_NAME=${{ vars.EXPERIMENT_NAME }} \
                 -t ${{ secrets.DOCKER_USERNAME }}/predict-microservice:latest \
                 -f Predict_Microservice/Dockerfile .
