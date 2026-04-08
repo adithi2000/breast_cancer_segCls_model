@@ -35,9 +35,6 @@ jobs:
               run: |
                 echo "Creating Docker image..."
                 docker build \
-                --build-arg AWS_REGION=${{ vars.AWS_REGION }} \
-                --build-arg MLFLOW_TRACKING_URI=${{ secrets.MLFLOW_TRACKING_URI }} \
-                --build-arg EXPERIMENT_NAME=${{ vars.EXPERIMENT_NAME }} \
                 -t ${{ secrets.DOCKER_USERNAME }}/predict-microservice:latest \
                 -f Predict_Microservice/Dockerfile .
                 echo "Docker image created successfully."
