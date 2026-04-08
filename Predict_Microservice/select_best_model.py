@@ -9,10 +9,12 @@ def select_best_model():
     # Fetch all runs for the experiment
     # load_dotenv()
     mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
+    print(f"MLflow Tracking URI: {mlflow.get_tracking_uri()}")
     exp=mlflow.search_experiments()
     for e in exp:
         print(e.name)
     experiment = mlflow.get_experiment_by_name(os.getenv("EXPERIMENT_NAME"))
+    print(f"Experiment ID: {experiment.experiment_id}, Name: {experiment.name}")
     runs = mlflow.search_runs(experiment_ids=[experiment.experiment_id])
     runs=runs.dropna(subset=['metrics.best_val_score'])
 
