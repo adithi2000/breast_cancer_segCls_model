@@ -1,15 +1,15 @@
 name: Deploy ansible frontend
 on:
     workflow_dispatch:
-    push:
-        branches:
-            - main
-        paths:
-            - 'streamlit_app/**'
-    workflow_run:
-        workflows: ["Frontend Docker Build and Push"]
-        types:
-            - completed
+    # push:
+    #     branches:
+    #         - main
+    #     paths:
+    #         - 'streamlit_app/**'
+    # workflow_run:
+    #     workflows: ["Frontend Docker Build and Push"]
+    #     types:
+    #         - completed
 jobs:
     deploy:
         runs-on: ubuntu-latest
