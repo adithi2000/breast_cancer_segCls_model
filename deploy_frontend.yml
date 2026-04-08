@@ -10,7 +10,6 @@
       apt:
         name: docker.io
         state: present
-      when: ansible_os_family == "Debian"
     - name: start and run docker service
       service:
         name: docker
