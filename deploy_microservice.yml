@@ -21,6 +21,9 @@
       community.docker.docker_container:
         name: "{{ container_name }}"
         state: absent
+    - name: clean docker system
+      community.docker.docker_system:
+        prune: yes
     - name: login to docker registry
       community.docker.docker_login:
         registry_url: "https://index.docker.io/v1/"
