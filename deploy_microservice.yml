@@ -1,7 +1,7 @@
 - name: Deploy microservice
   hosts: microservices
   become: yes
-  collectios: community.docker
+  collections: community.docker
   vars:
     container_name: "predict-microservice"
     image_name: "{{ docker_user_name }}/predict-microservice:latest"

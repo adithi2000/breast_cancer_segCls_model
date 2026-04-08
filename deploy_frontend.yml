@@ -1,7 +1,7 @@
 - name: Deploy frontend
   hosts: frontends
   become: yes
-  collectios: community.docker
+  collections: community.docker
   vars:
     container_name: "streamlit-frontend"
     image_name: "{{ docker_user_name }}/streamlit-frontend:latest"
