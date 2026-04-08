@@ -1,0 +1,43 @@
+- name: Deploy microservice
+  hosts: microservices
+  become: yes
+  collectios: community.docker
+  vars:
+    container_name: "predict-microservice"
+    image_name: "{{ docker_user_name }}/predict-microservice:latest"
+  tasks:
+    - name: install docker
+      apt:
+        name: docker.io
+        state: present
+        when: ansible_os_family == "Debian"
+    - name: start and run docker service
+      service:
+        name: docker
+        state: started
+        enabled: true
+    - name: stop and remove existing container
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        state: absent
+    - name: login to docker registry
+      community.docker.docker_login:
+        registry_url: "https://index.docker.io/v1/"
+        username: "{{ docker_user_name }}"
+        password: "{{ docker_password }}"
+    - name: pull docker image
+      community.docker.docker_image:
+        name: "{{ image_name }}"
+        source: pull
+    - name: run docker container
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        image: "{{ image_name }}"
+        state: started
+        restart_policy: always
+        ports:
+          - "8000:8000"
+        env:
+          AWS_ACCESS_KEY_ID: "{{ AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "{{ AWS_SECRET_ACCESS_KEY }}"  
+          

@@ -87,7 +87,7 @@ if uploaded_file is not None:
         }
         API_URL=os.getenv("API_URL")
         response = requests.post(
-            f"{API_URL}/",
+            f"http://{API_URL}:8000/predict/",
             files=files,
             headers=headers
         )

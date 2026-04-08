@@ -1,16 +1,16 @@
-name: Predict Microservice
+name: Frontend Docker Build and Push
 on:
     workflow_dispatch:
-    # push:
-    #     branches:
-    #         - main
-    #     paths:
-    #         - 'streamlit_app/**'
-    #         - 'Predict_Microservice/**'
-    # workflow_run:
-    #     workflows: ["Predict Microservice"]
-    #     types:
-    #         - completed
+    push:
+        branches:
+            - main
+        paths:
+            - 'streamlit_app/**'
+            - 'Predict_Microservice/**'
+    workflow_run:
+        workflows: ["Predict Microservice"]
+        types:
+            - completed
 jobs:
     deploy:
         runs-on: ubuntu-latest
