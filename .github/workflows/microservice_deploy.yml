@@ -1,4 +1,4 @@
-name: Deploy ansible
+name: Deploy ansible microservice
 on:
     workflow_dispatch:
     push:
@@ -37,5 +37,5 @@ jobs:
                 echo "ansible_ssh_private_key_file=ansible.pem" >> microservices.ini
             - name: Run Ansible Playbook
               run: |
-                    ansible-playbook -i microservices.ini deploy_microservice.yml --extra-vars "docker_user_name=${{ secrets.DOCKER_USERNAME }}" "docker_password=${{ secrets.DOCKER_PASSWORD }}" "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+                    ansible-playbook -i microservices.ini deploy_microservice.yml --extra-vars "docker_user_name=${{ secrets.DOCKER_USERNAME }} docker_password=${{ secrets.DOCKER_PASSWORD }} AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}"
 
