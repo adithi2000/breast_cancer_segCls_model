@@ -1,9 +1,9 @@
-md5: fe6a0348ecb76ece80a87d482d1a0b17
+md5: 868a7f161b8c47c25b3a1a31df894c3f
 deps:
 - path: data
   repo:
     url: https://github.com/VINNIESINGHSISODIA/mlopsPipeline.git
-    rev_lock: 064532944ddb9d2b9f6fe42db4be363860f357a4
+    rev_lock: ffacfb07769b50b7b65e7823161c7dbfead84bd3
     rev: main
 outs:
 - md5: ee457a7400094225d7f42b90bf9fc0d9.dir
