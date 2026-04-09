@@ -8,6 +8,9 @@ on:
             - main
         paths:
             - 'src/**'
+            - 'data.dvc'
+permissions:
+    contents: write
 jobs:
     train_and_test:
         runs-on: ubuntu-latest
@@ -20,6 +23,8 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@v5
+              with:
+                  fetch-depth: 0
 
             - name: Set up Python
               uses: actions/setup-python@v5
@@ -36,10 +41,20 @@ jobs:
                aws-region: ${{ vars.AWS_REGION }}
 
             - name: DVC Update
-              run: dvc update data.dvc
+              run: dvc update data.dvc --rev main
 
             - name: DVC Pull
               run: dvc pull
+
+            - name: Commit updated dvc files
+              if: github.actor != 'github-actions[bot]'
+              run: |
+                  git config --global user.name "github-actions"
+                  git config --global user.email "github-actions@github.com"
+                  git add data.dvc
+                  git diff --cached --quiet || git commit -m "Update DVC files after pulling data"
+                  git pull --rebase
+                  git push
 
             - name: checking the files
               run: |     
