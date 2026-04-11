@@ -111,7 +111,7 @@ def train():
         best_score=0
         best_model_state=None
         patience=3
-        epochs=2
+        epochs=5
         count=0
         # min_delta=0.001
         mlflow.log_param("lr", 1e-4)
