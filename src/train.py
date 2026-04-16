@@ -5,6 +5,7 @@ import torch.nn as nn
 import mlflow
 import mlflow.pytorch
 from dotenv import load_dotenv
+from collections import Counter
 
 from model import get_model
 from dataset import create_data_list, create_train_transforms, create_val_transforms, get_loader
@@ -37,13 +38,6 @@ def train():
     # 2. Data
     # -------------------------
 
-    # train_root = "/kaggle/input/datasets/adithip2000/breast-cancer-data-train-test-split/original/train"
-    # val_root = "/kaggle/input/datasets/adithip2000/breast-cancer-data-train-test-split/original/val"
-   
-    # os.makedirs("data/original/train", exist_ok=True)
-    # os.makedirs("data/original/val", exist_ok=True)
-    # os.makedirs("data/augmented/", exist_ok=True)
-
     current_file=os.path.abspath(__file__)
     src_dir=os.path.dirname(current_file)
     root=os.path.dirname(src_dir)
@@ -72,6 +66,13 @@ def train():
 
     train_data=train_data+aug_data
 
+    labels=[item['label'] for item in train_data]
+    class_counts=Counter(labels)
+    print("Class Counts:",class_counts)
+    counts=torch.tensor([class_counts[i] for i in range(3)],dtype=torch.float)
+    weights=1.0/counts
+    weights=weights/weights.sum()
+
     train_loader = get_loader(train_data, train_transforms, batch_size=4, shuffle=True)
     val_loader = get_loader(val_data, val_transforms, batch_size=4, shuffle=False)
     # test_loader = get_loader(test_data, val_transforms, batch_size=4, shuffle=False)
@@ -92,7 +93,8 @@ def train():
     # 5. Loss Functions
     # -------------------------
     seg_loss_fn = DiceLoss(sigmoid=True)
-    cls_loss_fn = nn.CrossEntropyLoss()
+
+    cls_loss_fn = nn.CrossEntropyLoss(weights=weights.to(device))
 
     # -------------------------
     # 6. MLflow start
@@ -123,6 +125,7 @@ def train():
         mlflow.log_param("model_architecture", "SegResNet50 with dual heads")
         mlflow.log_param("data_augmentation", "Included augmented data from S3 with latest prefix")
         mlflow.log_param("early_stopping", f"Based on combined score of 0.7*val_dice + 0.3*val_accuracy with patience {patience}")
+        mlflow.log_param("Device :",device)
 
     # -------------------------
     # 7. Training Loop
@@ -133,10 +136,11 @@ def train():
             train_loss,train_dice,train_accuracy=train_one_epoch(model,optimizer,train_loader,device,cls_loss_fn,seg_loss_fn)
             print(f"train_loss is {train_loss}")
             print(f"train_dice is {train_dice}")
-            val_loss,val_dice,val_accuracy=validation(model,val_loader,device,cls_loss_fn,seg_loss_fn)
+            val_loss,val_dice,val_accuracy,f1=validation(model,val_loader,device,cls_loss_fn,seg_loss_fn)
             print(f"val_loss {val_loss}")
             print(f"val_dice {val_dice}")
             print(f"val_accuracy {val_accuracy}")
+            print(f"val_f1 {f1}")
         # 🔥 MLflow logging
             mlflow.log_metric("train_loss", train_loss, step=e)
             mlflow.log_metric("val_loss", val_loss, step=e)
@@ -144,21 +148,13 @@ def train():
             mlflow.log_metric("val_dice", val_dice, step=e)
             mlflow.log_metric("train_accuracy", train_accuracy, step=e)
             mlflow.log_metric("val_accuracy", val_accuracy, step=e)
-            score=0.7*val_dice+0.3*val_accuracy
+            mlflow.log_metric("val_f1",f1,step=e)
+            score=0.7*val_dice+0.3*f1
             if(score > best_score + 1e-4):  # 🔥 check both dice and accuracy with a small margin
                 print("Saving model....")
                 best_score=score
                 count=0
                 best_model_state=model.state_dict()
-            #     torch.save(
-            # {
-            #     "epoch":e+1,
-            #     "model_state_dict":model.state_dict(),
-            #     "optimizer_state_dict":optimizer.state_dict(),
-            #     "best_score":best_score
-            # },f"models/best_model.pth"
-            # )
-            # f"/kaggle/working/models/best_model.pth"
             else:
                 print("Not saving.. under patience")
                 count+=1

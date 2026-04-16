@@ -75,14 +75,16 @@ def test():
             print(f"✅ Loaded model from MLflow run: {run_id}")
             model.to(device)
             model.train()
-            total_test_loss,test_dice,test_accuracy=validation(model, test_loader, device, cls_loss_fn, seg_loss_fn)
+            total_test_loss,test_dice,test_accuracy,f1=validation(model, test_loader, device, cls_loss_fn, seg_loss_fn)
             print("Test Loss:", total_test_loss)
             print("Test Dice:", test_dice)
             print("Test Accuracy:", test_accuracy)
+            print("test f1: ",f1)
             mlflow.log_metric("test_loss", total_test_loss)
             mlflow.log_metric("test_dice", test_dice)
             mlflow.log_metric("test_accuracy", test_accuracy)
-            score=0.7*test_dice+0.3*test_accuracy
+            mlflow.log_metric("test_f1_macro",f1)
+            score=0.7*test_dice+0.3*f1
             mlflow.log_metric("test_score", score)
     else:
         print("⚠️ RUN_ID not found in environment variables. Skipping MLflow logging.")

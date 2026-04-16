@@ -50,13 +50,13 @@ def predict_pipeline(model, contents):
         predicted_class_idx = torch.argmax(cls_out, dim=1).item()
         predicted_class = idx_to_class[predicted_class_idx]
         probs = torch.softmax(cls_out, dim=1)
-        confidence = probs[0][predicted_class_idx].item()
+        confidence = probs.squeeze()[predicted_class_idx].item()
 
 
         seg_out = torch.sigmoid(seg_out)
         seg_mask = seg_out.squeeze(0).squeeze(0).cpu().numpy()
 
-        if predicted_class == 'normal':
+        if predicted_class == 'normal' and confidence > 0.7:
             mask = np.zeros_like(seg_mask)
             mask = cv2.resize(mask, (image_np.shape[2], image_np.shape[1]))
         else:
