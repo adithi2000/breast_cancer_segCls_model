@@ -66,16 +66,15 @@ def train():
 
     train_data=train_data+aug_data
 
-    labels=[item['label'] for item in train_data]
-    class_counts=Counter(labels)
-    print("Class Counts:",class_counts)
-    counts=torch.tensor([class_counts[i] for i in range(3)],dtype=torch.float)
-    weights=1.0/counts
-    weights=weights/weights.sum()
+    # labels=[item['label'] for item in train_data]
+    # class_counts=Counter(labels)
+    # print("Class Counts:",class_counts)
+    # counts=torch.tensor([class_counts[i] for i in range(3)],dtype=torch.float)
+    # weights=1.0/counts
+    # weights=weights/weights.sum()
 
     train_loader = get_loader(train_data, train_transforms, batch_size=4, shuffle=True)
     val_loader = get_loader(val_data, val_transforms, batch_size=4, shuffle=False)
-    # test_loader = get_loader(test_data, val_transforms, batch_size=4, shuffle=False)
 
     print("DATASET LOADER COMPLETED...")
     # -------------------------
@@ -94,7 +93,7 @@ def train():
     # -------------------------
     seg_loss_fn = DiceLoss(sigmoid=True)
 
-    cls_loss_fn = nn.CrossEntropyLoss(weights=weights.to(device))
+    cls_loss_fn = nn.CrossEntropyLoss()
 
     # -------------------------
     # 6. MLflow start
