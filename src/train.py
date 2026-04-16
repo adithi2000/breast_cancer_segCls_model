@@ -112,7 +112,7 @@ def train():
         best_score=0
         best_model_state=None
         patience=3
-        epochs=5
+        epochs=2
         count=0
         # min_delta=0.001
         mlflow.log_param("lr", 1e-4)
@@ -123,7 +123,7 @@ def train():
         mlflow.log_param("Dice metric",'basis of model selection')
         mlflow.log_param("model_architecture", "SegResNet50 with dual heads")
         mlflow.log_param("data_augmentation", "Included augmented data from S3 with latest prefix")
-        mlflow.log_param("early_stopping", f"Based on combined score of 0.7*val_dice + 0.3*val_accuracy with patience {patience}")
+        mlflow.log_param("early_stopping", f"Based on combined score of 0.7*val_dice + 0.3*val_f1 with patience {patience}")
         mlflow.log_param("Device :",device)
 
     # -------------------------
@@ -149,6 +149,7 @@ def train():
             mlflow.log_metric("val_accuracy", val_accuracy, step=e)
             mlflow.log_metric("val_f1",f1,step=e)
             score=0.7*val_dice+0.3*f1
+            mlflow.log_metric("score",score,step=e)
             if(score > best_score + 1e-4):  # 🔥 check both dice and accuracy with a small margin
                 print("Saving model....")
                 best_score=score

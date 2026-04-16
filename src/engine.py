@@ -51,7 +51,7 @@ def train_one_epoch(model,optimizer, loader, device,cls_loss_fn,seg_loss_fn):
             loss = 0.3 * loss_cls
         
         accuracy = (cls_out.argmax(dim=1) == labels).float().mean().item()
-        print(f"Batch Accuracy: {accuracy:.4f}")
+        # print(f"Batch Accuracy: {accuracy:.4f}")
         total_accuracy += accuracy
 
         cls_loss_total += loss_cls.item()
