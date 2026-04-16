@@ -119,16 +119,16 @@ def validation(model, loader, device,cls_loss_fn,seg_loss_fn):
             all_preds.extend(pred_class.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
             accuracy = (cls_out.argmax(dim=1) == labels).float().mean().item()
-            print(f"Batch Accuracy: {accuracy:.4f}")
+            # print(f"Batch Accuracy: {accuracy:.4f}")
             total_accuracy += accuracy
 
 
             val_loss += loss.item()
             count_batches += 1
 
-    print("Val Seg Loss:", seg_loss_total / count_batches,
-          "Val Cls Loss:", cls_loss_total / count_batches)
-    print("Val Dice Score:", dice_metric.aggregate().item())
+    # print("Val Seg Loss:", seg_loss_total / count_batches,
+    #       "Val Cls Loss:", cls_loss_total / count_batches)
+    # print("Val Dice Score:", dice_metric.aggregate().item())
     dice_met=dice_metric.aggregate().item()
     dice_metric.reset()
     f1_score=f1_score(all_labels,all_preds,average='macro')
