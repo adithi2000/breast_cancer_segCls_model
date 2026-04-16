@@ -131,6 +131,6 @@ def validation(model, loader, device,cls_loss_fn,seg_loss_fn):
     # print("Val Dice Score:", dice_metric.aggregate().item())
     dice_met=dice_metric.aggregate().item()
     dice_metric.reset()
-    f1_score=f1_score(all_labels,all_preds,average='macro')
+    f1=f1_score(all_labels,all_preds,average='macro')
 
-    return val_loss / count_batches,dice_met,total_accuracy / count_batches,f1_score
+    return val_loss / count_batches,dice_met,total_accuracy / count_batches,f1
