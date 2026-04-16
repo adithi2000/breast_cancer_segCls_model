@@ -3,7 +3,7 @@ on:
     workflow_dispatch:
     push:
         branches:
-            - densenet-test
+            - main
         paths:
             - 'src/**'
             - 'Predict_Microservice/**'
