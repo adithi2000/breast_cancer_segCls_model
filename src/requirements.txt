@@ -10,3 +10,4 @@ python-multipart
 numpy
 opencv-python
 dvc[s3]
+scikit-learn

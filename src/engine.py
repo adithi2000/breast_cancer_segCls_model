@@ -1,5 +1,7 @@
 import torch
 from monai.metrics import DiceMetric
+from sklearn.metrics import f1_score
+
 
 
 dice_metric = DiceMetric(include_background=True, reduction="mean")
@@ -49,7 +51,7 @@ def train_one_epoch(model,optimizer, loader, device,cls_loss_fn,seg_loss_fn):
             loss = 0.3 * loss_cls
         
         accuracy = (cls_out.argmax(dim=1) == labels).float().mean().item()
-        print(f"Batch Accuracy: {accuracy:.4f}")
+        # print(f"Batch Accuracy: {accuracy:.4f}")
         total_accuracy += accuracy
 
         cls_loss_total += loss_cls.item()
@@ -76,6 +78,9 @@ def validation(model, loader, device,cls_loss_fn,seg_loss_fn):
     cls_loss_total = 0
     count_batches = 0
     total_accuracy = 0
+    all_preds=[]
+    all_labels=[]
+
 
     with torch.no_grad():
         for batch in loader:
@@ -110,18 +115,22 @@ def validation(model, loader, device,cls_loss_fn,seg_loss_fn):
                 loss = 0.5 * loss_cls
 
             cls_loss_total += loss_cls.item()
+            pred_class=torch.argmax(cls_out,dim=1)
+            all_preds.extend(pred_class.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
             accuracy = (cls_out.argmax(dim=1) == labels).float().mean().item()
-            print(f"Batch Accuracy: {accuracy:.4f}")
+            # print(f"Batch Accuracy: {accuracy:.4f}")
             total_accuracy += accuracy
 
 
             val_loss += loss.item()
             count_batches += 1
 
-    print("Val Seg Loss:", seg_loss_total / count_batches,
-          "Val Cls Loss:", cls_loss_total / count_batches)
-    print("Val Dice Score:", dice_metric.aggregate().item())
+    # print("Val Seg Loss:", seg_loss_total / count_batches,
+    #       "Val Cls Loss:", cls_loss_total / count_batches)
+    # print("Val Dice Score:", dice_metric.aggregate().item())
     dice_met=dice_metric.aggregate().item()
     dice_metric.reset()
+    f1=f1_score(all_labels,all_preds,average='macro')
 
-    return val_loss / count_batches,dice_met,total_accuracy / count_batches
+    return val_loss / count_batches,dice_met,total_accuracy / count_batches,f1
