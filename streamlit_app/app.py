@@ -100,7 +100,7 @@ if uploaded_file is not None:
             confidence = response.headers.get("X-Confidence", "N/A")
 
             st.markdown(f"**Predicted Class:** {predicted_class}")
-            st.markdown(f"**Confidence:** {confidence*100}%")
+            st.markdown(f"**Confidence:** {confidence}%")
 
 
             st.image(image, caption="Prediction Output")
