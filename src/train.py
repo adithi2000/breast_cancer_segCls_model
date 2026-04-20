@@ -168,7 +168,7 @@ def train():
         if best_model_state is not None:
             model.load_state_dict(best_model_state)
 
-        mlflow.pytorch.log_model(model, artifact_path="best_model", code_paths=["src/modules"],pip_requirements=["torch","monai","scikit-learn"])
+        mlflow.pytorch.log_model(model, artifact_path="best_model", code_paths=["modules/"],pip_requirements=["torch","monai","scikit-learn"])
         mlflow.log_metric("best_val_score", best_score)
 
         mlflow.end_run()
