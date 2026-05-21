@@ -1,12 +1,12 @@
 name: Predict Microservice
 on:
     workflow_dispatch:
-    push:
-        branches:
-            - main
-        paths:
-            - 'src/**'
-            - 'Predict_Microservice/**'
+    # push:
+    #     branches:
+    #         - main
+    #     paths:
+    #         - 'src/**'
+    #         - 'Predict_Microservice/**'
     workflow_run:
         workflows: ["Train Model"]
         types:
