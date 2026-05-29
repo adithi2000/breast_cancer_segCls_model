@@ -38,7 +38,7 @@ async def predict(file: UploadFile = File(...), user: dict = Depends(verify_toke
     return StreamingResponse(
         img_buffer,
         media_type="image/png",
-        headers={"X-Predicted-Class": str(predicted_class), "X-Confidence": str(round(confidence, 2))}
+        headers={"X-Predicted-Class": str(predicted_class), "X-Confidence": str(round(confidence*100, 2))}
     )
 
 @app.get("/")

@@ -10,6 +10,5 @@ import torch
 def load_model():
     best_model_uri = select_best_model()
     print(f"Loading model from URI: {best_model_uri}")
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = mlflow.pytorch.load_model(best_model_uri,map_location=device)
+    model = mlflow.pytorch.load_model(best_model_uri)
     return model
