@@ -8,7 +8,6 @@ on:
             - 'streamlit_app/**'
     workflow_run:
         workflows:
-          - "Predict Microservice"
           - "Base Image Streamlit"
         types:
             - completed
