@@ -1,9 +1,10 @@
-FROM python:3.12-slim
+# FROM python:3.12-slim
+FROM adithip/streamlit_base:latest
 
 WORKDIR /app
 
-COPY ./streamlit_app/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# COPY ./streamlit_app/requirements.txt .
+# RUN pip install --no-cache-dir -r requirements.txt
 
 # COPY src/ /app/src/
 COPY streamlit_app/ /app/

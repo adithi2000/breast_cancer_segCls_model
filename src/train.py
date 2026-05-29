@@ -8,9 +8,9 @@ import mlflow.pytorch
 from dotenv import load_dotenv
 from collections import Counter
 
-from model import get_model
-from dataset import create_data_list, create_train_transforms, create_val_transforms, get_loader
-from engine import train_one_epoch, validation
+from modules.model import get_model
+from modules.dataset import create_data_list, create_train_transforms, create_val_transforms, get_loader
+from modules.engine import train_one_epoch, validation
 
 # train.py
 
@@ -19,9 +19,9 @@ import torch.nn as nn
 import mlflow
 import mlflow.pytorch
 
-from model import MaskClassifyModel
-from dataset import create_data_list, create_train_transforms, create_val_transforms, get_loader
-from engine import train_one_epoch, validation
+from modules.model import MaskClassifyModel
+from modules.dataset import create_data_list, create_train_transforms, create_val_transforms, get_loader
+from modules.engine import train_one_epoch, validation
 from monai.losses import DiceLoss
 
 # from download_from_s3 import download_from_s3, get_latest_augmented_prefix
@@ -169,7 +169,7 @@ def train():
         if best_model_state is not None:
             model.load_state_dict(best_model_state)
 
-        mlflow.pytorch.log_model(model, "best_model")
+        mlflow.pytorch.log_model(model, artifact_path="best_model", code_paths=["modules"],pip_requirements=["torch","monai","scikit-learn"])
         mlflow.log_metric("best_val_score", best_score)
 
         mlflow.end_run()

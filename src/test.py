@@ -7,9 +7,9 @@ import mlflow
 import mlflow.pytorch
 import os
 # from download_from_s3 import download_from_s3
-from engine import validation
-from model import get_model
-from dataset import create_data_list, create_val_transforms, get_loader
+from modules.engine import validation
+from modules.model import get_model
+from modules.dataset import create_data_list, create_val_transforms, get_loader
 from dotenv import load_dotenv
 
 def test():

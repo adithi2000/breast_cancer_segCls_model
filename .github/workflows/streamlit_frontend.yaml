@@ -6,8 +6,9 @@ on:
             - main
         paths:
             - 'streamlit_app/**'
+            - 'Predict_Microservice/**'
     workflow_run:
-        workflows: ["Train Model"]
+        workflows: ["Predict Microservice"]
         types:
             - completed
 jobs:
