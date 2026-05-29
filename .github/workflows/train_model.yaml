@@ -5,7 +5,7 @@ on:
     workflow_dispatch:
     push:
         branches:
-            - densenet-test
+            - main
         paths:
             - 'src/**'
             - 'data.dvc'

@@ -3,9 +3,10 @@ on:
     workflow_dispatch:
     push:
         branches:
-            - densenet-test
+            - main
         paths:
             - 'streamlit_app/**'
+            
     workflow_run:
         workflows: ["Predict Microservice","Base Image Streamlit"]
         types:

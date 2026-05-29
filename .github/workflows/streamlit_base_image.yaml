@@ -3,7 +3,7 @@ on:
     workflow_dispatch:
     push:
         branches:
-            - densenet-test
+            - main
         paths:
             - 'base_image_creation/Streamlit_/**'
 jobs:
