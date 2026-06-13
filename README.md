@@ -9,6 +9,11 @@ You can find the detailed project report here:
 [📘 An End-to-End MLOps Pipeline Report](https://github.com/adithi2000/breast_cancer_segCls_model/blob/e38fb018a4b1399c149694f1445d2d00860cc3b8/An%20End-to-End%20MLOps%20Pipeline%20Report.pdf)
 
 ---
+# Important:
+- Use ngrok to expose port 30001 in vm with mini kube
+- use of ufw to edit the firewall rules to expose prot 30001
+- use of ngrok https url as redirect in google oauth
+
 
 ## 🚀 Project Overview
 
@@ -52,3 +57,6 @@ This project demonstrates a complete MLOps workflow including:
 ├── Predict_microservice/
 ├── README.md
 └── An End-to-End MLOps Pipeline Report.pdf
+
+
+
