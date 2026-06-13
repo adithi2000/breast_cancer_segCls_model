@@ -3,6 +3,7 @@
   become: yes
   gather_facts: yes
   vars:
+    kubernetes_apt_version: "v1.36"
     kubeconfig_path: "{{ KUBECONFIG | default('/etc/kubernetes/admin.conf') }}"
     docker_registry_auth: "{{ (docker_user_name ~ ':' ~ docker_password) | b64encode }}"
     manifest_dir: /tmp/breast-cancer-segmentation
@@ -35,11 +36,42 @@
         - API_URL
 
   tasks:
+    - name: Install Kubernetes apt repository prerequisites
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - gnupg
+        state: present
+        update_cache: yes
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Create apt keyring directory
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Download Kubernetes apt repository signing key
+      ansible.builtin.get_url:
+        url: "https://pkgs.k8s.io/core:/stable:/{{ kubernetes_apt_version }}/deb/Release.key"
+        dest: /etc/apt/keyrings/kubernetes-apt-keyring.asc
+        mode: "0644"
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Add Kubernetes apt repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.asc] https://pkgs.k8s.io/core:/stable:/{{ kubernetes_apt_version }}/deb/ /"
+        filename: kubernetes
+        state: present
+        update_cache: yes
+      when: ansible_facts['os_family'] == "Debian"
+
     - name: Install kubectl
       ansible.builtin.apt:
         name: kubectl
         state: present
-        update_cache: yes
       when: ansible_facts['os_family'] == "Debian"
 
     - name: Create temporary manifest directory
