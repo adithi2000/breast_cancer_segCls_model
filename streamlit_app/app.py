@@ -15,6 +15,9 @@ API_URL = os.getenv("API_URL")
 AUTHORIZATION_ENDPOINT = "https://accounts.google.com/o/oauth2/auth"
 TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token"
 
+print(f"Loaded OAuth settings: CLIENT_ID={'set' if CLIENT_ID else 'missing'}, "
+      f"CLIENT_SECRET={'set' if CLIENT_SECRET else 'missing'}, "
+      f"REDIRECT_URI={'set' if REDIRECT_URI else 'missing'}")
 
 st.title("SPE Image Segmentation App")
 
