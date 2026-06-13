@@ -9,7 +9,7 @@ on:
             - completed
 
 concurrency:
-    group: deploy-to-minikube
+    group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
 
 jobs:
