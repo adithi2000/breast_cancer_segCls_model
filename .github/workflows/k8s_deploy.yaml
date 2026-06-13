@@ -39,6 +39,40 @@ jobs:
             - name: Verify Minikube cluster access
               run: |
                 ansible k8s-node -i microservices.ini -m ansible.builtin.command -a "kubectl --kubeconfig=/home/${{ secrets.VM_HOST_USER }}/.kube/config cluster-info"
+            - name: Create Ansible extra vars
+              env:
+                KUBECONFIG_PATH: /home/${{ secrets.VM_HOST_USER }}/.kube/config
+                DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+                DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+                GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+                GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+                GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
+                MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
+                EXPERIMENT_NAME: ${{ vars.EXPERIMENT_NAME }}
+              run: |
+                test -n "$GOOGLE_REDIRECT_URI" || {
+                  echo "::error::GOOGLE_REDIRECT_URI GitHub Secret is unavailable to this workflow"
+                  exit 1
+                }
+
+                jq -n \
+                  --arg KUBECONFIG "$KUBECONFIG_PATH" \
+                  --arg docker_user_name "$DOCKER_USERNAME" \
+                  --arg docker_password "$DOCKER_PASSWORD" \
+                  --arg AWS_ACCESS_KEY_ID "$AWS_ACCESS_KEY_ID" \
+                  --arg AWS_SECRET_ACCESS_KEY "$AWS_SECRET_ACCESS_KEY" \
+                  --arg AWS_REGION "$AWS_REGION" \
+                  --arg GOOGLE_CLIENT_ID "$GOOGLE_CLIENT_ID" \
+                  --arg GOOGLE_CLIENT_SECRET "$GOOGLE_CLIENT_SECRET" \
+                  --arg GOOGLE_REDIRECT_URI "$GOOGLE_REDIRECT_URI" \
+                  --arg MLFLOW_TRACKING_URI "$MLFLOW_TRACKING_URI" \
+                  --arg EXPERIMENT_NAME "$EXPERIMENT_NAME" \
+                  --arg API_URL "predict-service" \
+                  '$ARGS.named' > extra-vars.json
+                chmod 600 extra-vars.json
             - name: Run Ansible Playbook
               run: |
-                    ansible-playbook -i microservices.ini deploy.yaml --extra-vars "KUBECONFIG=/home/${{ secrets.VM_HOST_USER }}/.kube/config docker_user_name=${{ secrets.DOCKER_USERNAME }} docker_password=${{ secrets.DOCKER_PASSWORD }} AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} AWS_REGION=${{ vars.AWS_REGION }} GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} GOOGLE_REDIRECT_URI=${{secrets.GOOGLE_REDIRECT_URI}} MLFLOW_TRACKING_URI=${{ secrets.MLFLOW_TRACKING_URI }} EXPERIMENT_NAME=${{ vars.EXPERIMENT_NAME }} API_URL=predict-service"
+                ansible-playbook -i microservices.ini deploy.yaml --extra-vars @extra-vars.json
+            - name: Remove Ansible extra vars
+              if: always()
+              run: rm -f extra-vars.json
