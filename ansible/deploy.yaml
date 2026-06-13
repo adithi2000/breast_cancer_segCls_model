@@ -1,6 +1,5 @@
 - name: k8s-deployment
   hosts: k8s-node
-  become: yes
   gather_facts: yes
   vars:
     kubeconfig_path: "{{ KUBECONFIG | default('/etc/kubernetes/admin.conf') }}"
