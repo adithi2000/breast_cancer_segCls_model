@@ -43,6 +43,18 @@ jobs:
             - name: Verify Minikube cluster access
               run: |
                 ansible k8s-node -i microservices.ini -m ansible.builtin.command -a "kubectl --kubeconfig=/home/${{ secrets.VM_HOST_USER }}/.kube/config cluster-info"
+            - name: Check Kubernetes resources
+              id: resource-check
+              run: |
+                if ansible k8s-node \
+                  -i microservices.ini \
+                  -m ansible.builtin.command \
+                  -a "kubectl --kubeconfig=/home/${{ secrets.VM_HOST_USER }}/.kube/config get deployment backend-dep-ser frontend-dep-ser --namespace mlops-project"
+                then
+                  echo "bootstrap_required=false" >> "$GITHUB_OUTPUT"
+                else
+                  echo "bootstrap_required=true" >> "$GITHUB_OUTPUT"
+                fi
             - name: Create Ansible extra vars
               env:
                 KUBECONFIG_PATH: /home/${{ secrets.VM_HOST_USER }}/.kube/config
@@ -105,7 +117,7 @@ jobs:
 
                 chmod 600 extra-vars.json
             - name: Bootstrap Kubernetes resources
-              if: github.event_name == 'workflow_dispatch'
+              if: github.event_name == 'workflow_dispatch' || steps.resource-check.outputs.bootstrap_required == 'true'
               run: |
                 ansible-playbook -i microservices.ini deploy.yaml --extra-vars @extra-vars.json
             - name: Roll out updated image
