@@ -120,3 +120,11 @@
             path: "{{ manifest_dir }}"
             state: absent
           no_log: true
+        - name: Start Streamlit port forward
+          shell: |
+              nohup kubectl port-forward \
+              --address 0.0.0.0 \
+              -n mlops-project \
+              svc/streamlit-service \
+              30001:8501 \
+              > /tmp/streamlit-portforward.log 2>&1 &
