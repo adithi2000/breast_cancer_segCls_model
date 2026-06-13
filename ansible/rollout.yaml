@@ -1,0 +1,83 @@
+- name: Roll out updated Kubernetes image
+  hosts: k8s-node
+  become: yes
+  gather_facts: no
+  vars:
+    kubeconfig_path: "{{ KUBECONFIG | default('/etc/kubernetes/admin.conf') }}"
+    namespace: mlops-project
+
+  pre_tasks:
+    - name: Validate rollout variables
+      ansible.builtin.assert:
+        that:
+          - lookup('vars', item, default='') | string | length > 0
+        fail_msg: "Required rollout variable '{{ item }}' is missing."
+        quiet: true
+      loop:
+        - deployment_name
+        - container_name
+        - image_name
+
+    - name: Check kubeconfig
+      ansible.builtin.stat:
+        path: "{{ kubeconfig_path }}"
+      register: kubeconfig
+
+    - name: Verify kubeconfig exists
+      ansible.builtin.assert:
+        that:
+          - kubeconfig.stat.exists
+        fail_msg: "Kubeconfig not found at '{{ kubeconfig_path }}'."
+        quiet: true
+
+  tasks:
+    - name: Get currently deployed image
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - get
+          - deployment
+          - "{{ deployment_name }}"
+          - --namespace
+          - "{{ namespace }}"
+          - --output
+          - "jsonpath={.spec.template.spec.containers[?(@.name=='{{ container_name }}')].image}"
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+      register: current_image
+      changed_when: false
+
+    - name: Update deployment image
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - set
+          - image
+          - "deployment/{{ deployment_name }}"
+          - "{{ container_name }}={{ image_name }}"
+          - --namespace
+          - "{{ namespace }}"
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+      when: current_image.stdout != image_name
+      changed_when: true
+
+    - name: Wait for rollout completion
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - rollout
+          - status
+          - "deployment/{{ deployment_name }}"
+          - --namespace
+          - "{{ namespace }}"
+          - --timeout=300s
+      environment:
+        KUBECONFIG: "{{ kubeconfig_path }}"
+      when: current_image.stdout != image_name
+      changed_when: false
+
+    - name: Report image is already deployed
+      ansible.builtin.debug:
+        msg: "{{ deployment_name }} already uses {{ image_name }}; rollout skipped."
+      when: current_image.stdout == image_name

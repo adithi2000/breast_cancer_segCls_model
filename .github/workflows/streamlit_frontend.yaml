@@ -20,13 +20,16 @@ jobs:
     deploy:
         runs-on: ubuntu-latest
         env:
+          IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ vars.AWS_REGION }}
-        if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' }}
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
         steps:
             - name: Checkout code
               uses: actions/checkout@v5
+              with:
+                ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
             - name: setup docker
               uses: docker/login-action@v2
@@ -37,11 +40,15 @@ jobs:
             - name: create docker image
               run: |
                 echo "Creating Docker image..."
-                docker build -t ${{ secrets.DOCKER_USERNAME }}/streamlit-frontend:latest -f streamlit_app/Dockerfile .
+                docker build \
+                  -t ${{ secrets.DOCKER_USERNAME }}/streamlit-frontend:latest \
+                  -t ${{ secrets.DOCKER_USERNAME }}/streamlit-frontend:$IMAGE_TAG \
+                  -f streamlit_app/Dockerfile .
                 echo "Docker image created successfully."
 
             - name: push docker image
               run: |
                 echo "Pushing Docker image to registry..."
                 docker push ${{ secrets.DOCKER_USERNAME }}/streamlit-frontend:latest
+                docker push ${{ secrets.DOCKER_USERNAME }}/streamlit-frontend:$IMAGE_TAG
                 echo "Docker image pushed successfully."

@@ -9,7 +9,7 @@ on:
             - completed
 
 concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
+    group: ${{ github.workflow }}-${{ github.event.workflow_run.name || github.ref }}
     cancel-in-progress: true
 
 jobs:
@@ -26,6 +26,8 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@v5
+              with:
+                ref: ${{ github.event.workflow_run.head_sha || github.sha }}
             - name: Install Ansible
               run: |
                 sudo apt update
@@ -51,6 +53,9 @@ jobs:
                 GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
                 MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
                 EXPERIMENT_NAME: ${{ vars.EXPERIMENT_NAME }}
+                EVENT_NAME: ${{ github.event_name }}
+                UPSTREAM_WORKFLOW: ${{ github.event.workflow_run.name }}
+                IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
               run: |
                 test -n "$GOOGLE_REDIRECT_URI" || {
                   echo "::error::GOOGLE_REDIRECT_URI GitHub Secret is unavailable to this workflow"
@@ -71,10 +76,42 @@ jobs:
                   --arg EXPERIMENT_NAME "$EXPERIMENT_NAME" \
                   --arg API_URL "predict-service" \
                   '$ARGS.named' > extra-vars.json
+
+                if [[ "$EVENT_NAME" == "workflow_run" ]]; then
+                  case "$UPSTREAM_WORKFLOW" in
+                    "Predict Microservice")
+                      deployment_name="backend-dep-ser"
+                      container_name="breast-cancer-segmentation"
+                      image_name="$DOCKER_USERNAME/predict-microservice:$IMAGE_TAG"
+                      ;;
+                    "Frontend Docker Build and Push")
+                      deployment_name="frontend-dep-ser"
+                      container_name="streamlit-frontend"
+                      image_name="$DOCKER_USERNAME/streamlit-frontend:$IMAGE_TAG"
+                      ;;
+                    *)
+                      echo "::error::Unsupported upstream workflow: $UPSTREAM_WORKFLOW"
+                      exit 1
+                      ;;
+                  esac
+
+                  jq \
+                    --arg deployment_name "$deployment_name" \
+                    --arg container_name "$container_name" \
+                    --arg image_name "$image_name" \
+                    '. + $ARGS.named' extra-vars.json > rollout-vars.json
+                  mv rollout-vars.json extra-vars.json
+                fi
+
                 chmod 600 extra-vars.json
-            - name: Run Ansible Playbook
+            - name: Bootstrap Kubernetes resources
+              if: github.event_name == 'workflow_dispatch'
               run: |
                 ansible-playbook -i microservices.ini deploy.yaml --extra-vars @extra-vars.json
+            - name: Roll out updated image
+              if: github.event_name == 'workflow_run'
+              run: |
+                ansible-playbook -i microservices.ini rollout.yaml --extra-vars @extra-vars.json
             - name: Remove Ansible extra vars
               if: always()
               run: rm -f extra-vars.json
