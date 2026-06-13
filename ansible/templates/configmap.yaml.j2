@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: mlflow-config
+    namespace: mlops-project
+data:
+    MLFLOW_TRACKING_URI: {{ MLFLOW_TRACKING_URI | quote }}
+    EXPERIMENT_NAME: {{ EXPERIMENT_NAME | quote }}
+    API_URL: {{ API_URL | quote }}

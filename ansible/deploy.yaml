@@ -1,0 +1,90 @@
+- name: k8s-deployment
+  hosts: k8s-node
+  become: yes
+  gather_facts: yes
+  vars:
+    kubeconfig_path: "{{ KUBECONFIG | default('/etc/kubernetes/admin.conf') }}"
+    docker_registry_auth: "{{ (docker_user_name ~ ':' ~ docker_password) | b64encode }}"
+    manifest_dir: /tmp/breast-cancer-segmentation
+    manifest_files:
+      - namespace.yaml
+      - registry-secret.yaml
+      - configmap.yaml
+      - secret.yaml
+      - backend-dep-ser.yaml
+      - frontend-dep-ser.yaml
+
+  pre_tasks:
+    - name: Validate required deployment variables
+      ansible.builtin.assert:
+        that:
+          - lookup('vars', item, default='') | string | length > 0
+        fail_msg: "Required variable '{{ item }}' is missing. Pass it with --extra-vars or define it in Ansible Vault."
+        quiet: true
+      loop:
+        - docker_user_name
+        - docker_password
+        - AWS_ACCESS_KEY_ID
+        - AWS_SECRET_ACCESS_KEY
+        - AWS_REGION
+        - GOOGLE_CLIENT_ID
+        - GOOGLE_CLIENT_SECRET
+        - GOOGLE_REDIRECT_URI
+        - MLFLOW_TRACKING_URI
+        - EXPERIMENT_NAME
+        - API_URL
+
+  tasks:
+    - name: Install kubectl
+      ansible.builtin.apt:
+        name: kubectl
+        state: present
+        update_cache: yes
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Create temporary manifest directory
+      ansible.builtin.file:
+        path: "{{ manifest_dir }}"
+        state: directory
+        mode: "0700"
+
+    - name: Check kubeconfig
+      ansible.builtin.stat:
+        path: "{{ kubeconfig_path }}"
+      register: kubeconfig
+
+    - name: Verify kubeconfig exists
+      ansible.builtin.assert:
+        that:
+          - kubeconfig.stat.exists
+        fail_msg: "Kubeconfig not found at '{{ kubeconfig_path }}'. Pass its remote path with --extra-vars KUBECONFIG=/path/to/config."
+        quiet: true
+
+    - name: Render and apply Kubernetes manifests
+      block:
+        - name: Render Kubernetes manifests
+          ansible.builtin.template:
+            src: "templates/{{ item }}.j2"
+            dest: "{{ manifest_dir }}/{{ item }}"
+            mode: "0600"
+          loop: "{{ manifest_files }}"
+          no_log: true
+
+        - name: Apply Kubernetes manifests
+          ansible.builtin.command:
+            argv:
+              - kubectl
+              - apply
+              - --filename
+              - "{{ manifest_dir }}/{{ item }}"
+          loop: "{{ manifest_files }}"
+          register: kubectl_apply
+          changed_when: "'configured' in kubectl_apply.stdout or 'created' in kubectl_apply.stdout"
+          environment:
+            KUBECONFIG: "{{ kubeconfig_path }}"
+      always:
+        - name: Remove rendered Kubernetes manifests
+          ansible.builtin.file:
+            path: "{{ manifest_dir }}"
+            state: absent
+          no_log: true

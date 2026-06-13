@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: backend-dep-ser
+    namespace: mlops-project
+spec:
+    replicas: 2
+    selector:
+        matchLabels:
+            app: breast-cancer-segmentation
+    template:
+        metadata:
+            labels:
+                app: breast-cancer-segmentation
+        spec:
+            imagePullSecrets:
+            - name: dockerhub-credentials
+            containers:
+            - name: breast-cancer-segmentation
+              image: "{{ docker_user_name }}/predict-microservice:latest"
+              imagePullPolicy: Always
+              ports:
+              - containerPort: 8000
+              envFrom:
+                - configMapRef:
+                    name: mlflow-config
+                - secretRef:
+                    name: aws-gcp-credentials
+              livenessProbe:
+                  httpGet:
+                      path: /health
+                      port: 8000
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              readinessProbe:
+                  httpGet:
+                      path: /health
+                      port: 8000
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: predict-service
+    namespace: mlops-project
+spec:
+    selector:
+        app: breast-cancer-segmentation
+    ports:
+        - protocol: TCP
+          port: 8000
+          targetPort: 8000
+    type: ClusterIP
