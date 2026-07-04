@@ -160,6 +160,8 @@ jobs:
                 ansible k8s-node -i microservices.ini -m ansible.builtin.command -a "kubectl --kubeconfig=/home/${{ secrets.VM_HOST_USER }}/.kube/config get service predict-service --namespace mlops-project"
 
                 ansible k8s-node -i microservices.ini -m ansible.builtin.command -a "kubectl --kubeconfig=/home/${{ secrets.VM_HOST_USER }}/.kube/config get service streamlit-service --namespace mlops-project"
+
+                ansible k8s-node -i microservices.ini -m ansible.builtin.command -a "kubectl --kubeconfig=/home/${{ secrets.VM_HOST_USER }}/.kube/config get networkpolicy allow-frontend-to-backend --namespace mlops-project"
             - name: Remove Ansible extra vars
               if: always()
               run: rm -f extra-vars.json
