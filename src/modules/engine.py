@@ -1,8 +1,11 @@
+import logging
+
 import torch
 from monai.metrics import DiceMetric
 from sklearn.metrics import f1_score
 
 
+logger = logging.getLogger(__name__)
 
 dice_metric = DiceMetric(include_background=True, reduction="mean")
 
@@ -15,6 +18,7 @@ def train_one_epoch(model,optimizer, loader, device,cls_loss_fn,seg_loss_fn):
     count_batches = 0
     total_accuracy = 0
 
+    logger.info("Starting training epoch with %d batches", len(loader))
     for batch in loader:
         images = batch['image'].to(device)
         masks = batch['mask'].to(device)
@@ -51,7 +55,6 @@ def train_one_epoch(model,optimizer, loader, device,cls_loss_fn,seg_loss_fn):
             loss = 0.3 * loss_cls
         
         accuracy = (cls_out.argmax(dim=1) == labels).float().mean().item()
-        # print(f"Batch Accuracy: {accuracy:.4f}")
         total_accuracy += accuracy
 
         cls_loss_total += loss_cls.item()
@@ -62,9 +65,12 @@ def train_one_epoch(model,optimizer, loader, device,cls_loss_fn,seg_loss_fn):
         train_loss += loss.item()
         count_batches += 1
     
-    print("Train Seg Loss:", seg_loss_total / count_batches,
-          "Train Cls Loss:", cls_loss_total / count_batches)
-    print("Train Dice Score:", dice_metric.aggregate().item())
+    logger.info(
+        "Training epoch loss breakdown: seg_loss=%.6f, cls_loss=%.6f",
+        seg_loss_total / count_batches,
+        cls_loss_total / count_batches,
+    )
+    logger.info("Training epoch dice score: %.6f", dice_metric.aggregate().item())
     dice_met=dice_metric.aggregate().item()
     dice_metric.reset()
 
@@ -82,6 +88,7 @@ def validation(model, loader, device,cls_loss_fn,seg_loss_fn):
     all_labels=[]
 
 
+    logger.info("Starting validation with %d batches", len(loader))
     with torch.no_grad():
         for batch in loader:
             images = batch['image'].to(device)
@@ -119,18 +126,21 @@ def validation(model, loader, device,cls_loss_fn,seg_loss_fn):
             all_preds.extend(pred_class.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
             accuracy = (cls_out.argmax(dim=1) == labels).float().mean().item()
-            # print(f"Batch Accuracy: {accuracy:.4f}")
             total_accuracy += accuracy
 
 
             val_loss += loss.item()
             count_batches += 1
 
-    # print("Val Seg Loss:", seg_loss_total / count_batches,
-    #       "Val Cls Loss:", cls_loss_total / count_batches)
-    # print("Val Dice Score:", dice_metric.aggregate().item())
     dice_met=dice_metric.aggregate().item()
     dice_metric.reset()
     f1=f1_score(all_labels,all_preds,average='macro')
+    logger.info(
+        "Validation completed: loss=%.6f, dice=%.6f, accuracy=%.6f, f1=%.6f",
+        val_loss / count_batches,
+        dice_met,
+        total_accuracy / count_batches,
+        f1,
+    )
 
     return val_loss / count_batches,dice_met,total_accuracy / count_batches,f1

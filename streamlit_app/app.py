@@ -1,4 +1,5 @@
 import io
+import logging
 import os
 
 import requests
@@ -15,9 +16,11 @@ API_URL = os.getenv("API_URL")
 AUTHORIZATION_ENDPOINT = "https://accounts.google.com/o/oauth2/auth"
 TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token"
 
-print(f"Loaded OAuth settings: CLIENT_ID={'set' if CLIENT_ID else 'missing'}, "
-      f"CLIENT_SECRET={'set' if CLIENT_SECRET else 'missing'}, "
-      f"REDIRECT_URI={'set' if REDIRECT_URI else 'missing'}")
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO").upper(),
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 st.title("SPE Image Segmentation App")
 
@@ -40,6 +43,7 @@ if "token" not in st.session_state:
     oauth_error = st.query_params.get("error")
     if oauth_error:
         error_description = st.query_params.get("error_description", oauth_error)
+        logger.warning("Google OAuth failed: %s", error_description)
         st.error(f"Google OAuth failed: {error_description}")
         st.stop()
 
@@ -53,13 +57,16 @@ if "token" not in st.session_state:
         )
 
         try:
+            logger.info("Exchanging Google OAuth code for token")
             st.session_state.token = callback_oauth.fetch_token(
                 TOKEN_ENDPOINT,
                 code=code,
                 redirect_uri=REDIRECT_URI,
                 grant_type="authorization_code",
             )
+            logger.info("Google OAuth token exchange succeeded")
         except Exception as exc:
+            logger.exception("Google token exchange failed")
             st.error(f"Google token exchange failed: {exc}")
             st.stop()
 
@@ -78,6 +85,7 @@ if "token" not in st.session_state:
     )
 
     st.link_button("Login with Google", authorization_url)
+    logger.info("Rendered Google login button")
     st.stop()
 
 
@@ -91,9 +99,11 @@ uploaded_file = st.file_uploader(
 )
 
 if uploaded_file is not None:
+    logger.info("Image uploaded: name=%s, type=%s, size=%d", uploaded_file.name, uploaded_file.type, uploaded_file.size)
     st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
 
     if st.button("Predict"):
+        logger.info("Submitting prediction request for uploaded file: %s", uploaded_file.name)
         headers = {
             "Authorization": f"Bearer {id_token}",
         }
@@ -101,11 +111,17 @@ if uploaded_file is not None:
             "file": uploaded_file.getvalue(),
         }
 
-        response = requests.post(
-            f"http://{API_URL}:8000/predict/",
-            files=files,
-            headers=headers,
-        )
+        try:
+            response = requests.post(
+                f"http://{API_URL}:8000/predict/",
+                files=files,
+                headers=headers,
+                timeout=60,
+            )
+        except requests.RequestException as exc:
+            logger.exception("Prediction request failed")
+            st.error(f"Prediction request failed: {exc}")
+            st.stop()
 
         if response.status_code == 200:
             image = Image.open(io.BytesIO(response.content))
@@ -115,5 +131,7 @@ if uploaded_file is not None:
             st.markdown(f"**Predicted Class:** {predicted_class}")
             st.markdown(f"**Confidence:** {confidence}%")
             st.image(image, caption="Prediction Output")
+            logger.info("Prediction succeeded: class=%s, confidence=%s", predicted_class, confidence)
         else:
+            logger.error("Prediction failed: status=%d, body=%s", response.status_code, response.text)
             st.error(f"Prediction failed: {response.text}")

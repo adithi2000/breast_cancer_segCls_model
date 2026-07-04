@@ -1,12 +1,16 @@
+import logging
+import os
+from collections import Counter
+
 from monai.transforms import (
     Compose, LoadImaged, EnsureChannelFirstd, ScaleIntensityd, ToTensord, Lambdad, ResizeD, RandFlipd, RandRotate90d,RepeatChanneld
 )
 from monai.data import Dataset
-import os
 from monai.data import DataLoader
-from collections import Counter
 from torch.utils.data import WeightedRandomSampler
 
+
+logger = logging.getLogger(__name__)
 
 def create_data_list(root):
     data_list=[]
@@ -17,15 +21,14 @@ def create_data_list(root):
         }
     for class_name in class_map.keys():
         class_path=os.path.join(root,class_name)
-        # print(class_path)
-        # print(os.path.exists(class_path))
+        if not os.path.isdir(class_path):
+            logger.warning("Class directory not found: %s", class_path)
+            continue
         for file in os.listdir(class_path):
             if '_mask' not in file:
                 image_path=os.path.join(class_path,file)
                 mask_name = file.replace(".png", "_mask.png")
                 mask_path = os.path.join(class_path, mask_name)
-
-                # print(image_path, mask_path)
 
                 if os.path.exists(mask_path):
                     data_list.append({
@@ -34,10 +37,12 @@ def create_data_list(root):
                     "label": class_map[class_name]  # optional
                     })
                 else:
-                    print("Missing mask for:", file)
+                    logger.warning("Missing mask for image: %s", image_path)
+    logger.info("Created data list from %s with %d samples", root, len(data_list))
     return data_list
 
 def create_train_transforms():
+    logger.debug("Creating training transforms")
     train_transforms=Compose(
     [
         LoadImaged(keys=['image','mask']),
@@ -59,6 +64,7 @@ def create_train_transforms():
     return train_transforms
 
 def create_val_transforms():
+    logger.debug("Creating validation transforms")
     val_transforms=Compose(
     [
         LoadImaged(keys=['image','mask']),
@@ -81,7 +87,7 @@ def get_loader(data_list, transforms_, batch_size=4, shuffle=False):
     labels = [item["label"] for item in data_list]
     
     class_counts = Counter(labels)
-    print(class_counts)
+    logger.info("Creating data loader: samples=%d, batch_size=%d, class_counts=%s", len(data_list), batch_size, dict(class_counts))
     class_weights = {
     cls: 1.0 / count for cls, count in class_counts.items()
     }
@@ -94,5 +100,6 @@ def get_loader(data_list, transforms_, batch_size=4, shuffle=False):
     )
 
     loader=DataLoader(ds, batch_size=batch_size,sampler=sampler)
+    logger.debug("Data loader created with weighted random sampler")
     return loader
 
