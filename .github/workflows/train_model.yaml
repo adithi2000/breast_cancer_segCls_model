@@ -35,6 +35,14 @@ jobs:
               uses: actions/setup-python@v5
               with:
                   python-version: '3.12'
+
+            - name: Validate training environment variables
+              run: |
+                test -n "$MLFLOW_TRACKING_URI"
+                test -n "$EXPERIMENT_NAME"
+                test -n "$AWS_ACCESS_KEY_ID"
+                test -n "$AWS_SECRET_ACCESS_KEY"
+                test -n "$AWS_REGION"
             - name: Install DVC
               run: pip install dvc[s3]
             
@@ -47,6 +55,14 @@ jobs:
 
             - name: DVC Update
               run: dvc update data.dvc --rev main
+
+            - name: Show DVC file changes
+              run: |
+                git diff -- data.dvc
+
+            - name: Check DVC update status
+              run: |
+                dvc status data.dvc
 
             - name: DVC Pull
               run: dvc pull
@@ -68,6 +84,18 @@ jobs:
               run: |
                   python -m pip install --upgrade pip
                   pip install -r requirements.txt
+              working-directory: src/
+
+            - name: Test training dependencies
+              run: |
+                python -c "import torch; import monai; import mlflow; import sklearn; import dotenv; print('Training dependencies OK')"
+            - name: Check Python syntax
+              run: |
+                python -m compileall src
+
+            - name: Test source imports
+              run: |
+                python -c "from modules.model import get_model; from modules.dataset import create_data_list; from modules.engine import train_one_epoch, validation; print('Source imports OK')"
               working-directory: src/
             
             - name: Train the model

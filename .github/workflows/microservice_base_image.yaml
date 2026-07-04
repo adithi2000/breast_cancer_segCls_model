@@ -32,6 +32,11 @@ jobs:
                 -f base_image_creation/fastapi/Dockerfile .
                 echo "Docker image created successfully."
 
+            - name: test fastapi base image dependencies
+              run: |
+                docker run --rm ${{ secrets.DOCKER_USERNAME }}/fastapi_base:latest \
+                python -c "import torch; import monai; import mlflow; import cv2; import fastapi; print('FastAPI base image imports OK')"
+
             - name: push docker image
               run: |
                 echo "Pushing Docker image to registry..."

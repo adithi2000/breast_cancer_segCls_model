@@ -32,6 +32,11 @@ jobs:
                 -f base_image_creation/Streamlit_/Dockerfile .
                 echo "Docker image created successfully."
 
+            - name: test streamlit base image dependencies
+              run: |
+                docker run --rm ${{ secrets.DOCKER_USERNAME }}/streamlit_base:latest \
+                python -c "import streamlit; import requests; import authlib; import PIL; print('Streamlit base image imports OK')"
+
             - name: push docker image
               run: |
                 echo "Pushing Docker image to registry..."

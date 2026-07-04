@@ -39,6 +39,11 @@ jobs:
                 sudo apt update
                 sudo apt install -y ansible
                 sudo apt-get install -y sshpass
+
+            - name: Check Ansible playbook syntax
+              run: |
+                ansible-playbook deploy.yaml --syntax-check
+                ansible-playbook rollout.yaml --syntax-check
             - name: Create Ansible Hosts File
               run: |
                 echo "[k8s-node]" > microservices.ini
@@ -141,6 +146,20 @@ jobs:
               if: github.event_name == 'workflow_run'
               run: |
                 ansible-playbook -i microservices.ini rollout.yaml --extra-vars @extra-vars.json
+
+            - name: Verify Kubernetes workloads
+              run: |
+                ansible k8s-node -i microservices.ini -m ansible.builtin.command -a "kubectl --kubeconfig=/home/${{ secrets.VM_HOST_USER }}/.kube/config wait --for=condition=available deployment/backend-dep-ser --namespace mlops-project --timeout=300s"
+
+                ansible k8s-node -i microservices.ini -m ansible.builtin.command -a "kubectl --kubeconfig=/home/${{ secrets.VM_HOST_USER }}/.kube/config wait --for=condition=available deployment/frontend-dep-ser --namespace mlops-project --timeout=300s"
+
+                ansible k8s-node -i microservices.ini -m ansible.builtin.command -a "kubectl --kubeconfig=/home/${{ secrets.VM_HOST_USER }}/.kube/config wait --for=condition=ready pod -l app=breast-cancer-segmentation --namespace mlops-project --timeout=300s"
+
+                ansible k8s-node -i microservices.ini -m ansible.builtin.command -a "kubectl --kubeconfig=/home/${{ secrets.VM_HOST_USER }}/.kube/config wait --for=condition=ready pod -l app=streamlit-frontend --namespace mlops-project --timeout=300s"
+
+                ansible k8s-node -i microservices.ini -m ansible.builtin.command -a "kubectl --kubeconfig=/home/${{ secrets.VM_HOST_USER }}/.kube/config get service predict-service --namespace mlops-project"
+
+                ansible k8s-node -i microservices.ini -m ansible.builtin.command -a "kubectl --kubeconfig=/home/${{ secrets.VM_HOST_USER }}/.kube/config get service streamlit-service --namespace mlops-project"
             - name: Remove Ansible extra vars
               if: always()
               run: rm -f extra-vars.json

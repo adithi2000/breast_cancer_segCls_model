@@ -51,6 +51,16 @@ jobs:
             -f Predict_Microservice/Dockerfile .
           echo "Docker image created successfully."
 
+      - name: test predict microservice files compile
+        run: |
+          docker run --rm ${{ secrets.DOCKER_USERNAME }}/predict-microservice:$IMAGE_TAG \
+          python -m compileall Predict_Microservice
+
+      - name: test predict microservice files compile
+        run: |
+          docker run --rm ${{ secrets.DOCKER_USERNAME }}/predict-microservice:$IMAGE_TAG \
+          python -m compileall Predict_Microservice
+
       - name: push docker image
         run: |
           echo "Pushing Docker image to registry..."

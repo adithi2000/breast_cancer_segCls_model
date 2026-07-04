@@ -46,6 +46,17 @@ jobs:
                   -f streamlit_app/Dockerfile .
                 echo "Docker image created successfully."
 
+
+            - name: test streamlit frontend image imports
+              run: |
+                docker run --rm ${{ secrets.DOCKER_USERNAME }}/streamlit-frontend:$IMAGE_TAG \
+                python -c "import streamlit; import requests; import authlib; import PIL; print('Streamlit frontend image imports OK')"
+
+            - name: test streamlit app compiles
+              run: |
+                docker run --rm ${{ secrets.DOCKER_USERNAME }}/streamlit-frontend:$IMAGE_TAG \
+                python -m py_compile streamlit_app/app.py
+
             - name: push docker image
               run: |
                 echo "Pushing Docker image to registry..."
